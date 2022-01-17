@@ -41,12 +41,12 @@ export default function Login({ setToken }) {
   };
 
   return (
-    <div className="d-flex justify-content-center align-items-center main pb-5 text-white ">
+    <div className="d-flex justify-content-center align-items-center main pb-5 text-white">
       <form onSubmit={handleSubmit} className="w-50" dir="rtl">
         <h3 className="text-center mb-3">تسجيل الدخول</h3>
 
-        <div className="form-group">
-          <label className="float-right">اسم المستخدم</label>
+        <div className="form-group mb-3">
+          <label className="form-label">اسم المستخدم</label>
           <input
             type="username"
             className="form-control"
@@ -55,8 +55,8 @@ export default function Login({ setToken }) {
           />
         </div>
 
-        <div className="form-group">
-          <label className="float-right">كلمة المرور</label>
+        <div className="form-group mb-3">
+          <label className="form-label">كلمة المرور</label>
           <input
             type="password"
             className="form-control"
@@ -65,7 +65,7 @@ export default function Login({ setToken }) {
           />
         </div>
 
-        <button type="submit" className="btn btn-primary btn-block">
+        <button type="submit" className="btn btn-primary btn-block w-100">
           سجل الدخول
         </button>
       </form>

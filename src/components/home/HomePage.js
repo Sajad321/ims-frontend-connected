@@ -1,6 +1,5 @@
 import React, { useState, Fragment, useEffect } from "react";
 import Admin from "../admin/Admin";
-import AttendanceOfficer from "../attendanceOfficer/Attendanceofficer";
 
 const apiUrl = process.env.API_URL;
 var { ipcRenderer } = require("electron");

@@ -39,6 +39,11 @@
   transition: 0.5s;
 }
 
+.main {
+  background: #000000;
+  min-height: 100vh;
+  height: 100%;
+}
 .logo-text {
   text-decoration: none;
   color: black;
@@ -257,7 +262,6 @@ footer {
 }
 .modal-content {
   opacity: 1 !important;
-  background-color: #222222;
 }
 // .my-modal {
 //   opacity: 0.5;
@@ -269,6 +273,9 @@ footer {
 // .modal {
 //   background-color: #222;
 // }
+.btn-close {
+  margin: 0 !important;
+}
 .modal-text-form {
   font-size: larger;
 }
@@ -318,7 +325,9 @@ thead .button.descending::after {
   padding: 0.5rem 1rem 0 0;
   transition: 0.5s;
 }
-
+#top-bar {
+  background-color: white;
+}
 .nav {
   height: 100%;
   display: flex;

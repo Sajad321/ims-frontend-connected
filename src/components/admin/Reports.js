@@ -6,8 +6,69 @@ import ConfirmModal from "../common/ConfirmModal";
 import InfiniteScroll from "react-infinite-scroll-component";
 import Loading from "../common/Loading";
 import ReactHTMLTableToExcel from "react-html-table-to-excel";
+import Pagination from "@mui/material/Pagination";
+import {
+  DataGrid,
+  gridPageCountSelector,
+  gridPageSelector,
+  useGridApiContext,
+  useGridSelector,
+} from "@mui/x-data-grid";
+
+function CustomPagination() {
+  const apiRef = useGridApiContext();
+  const page = useGridSelector(apiRef, gridPageSelector);
+  const pageCount = useGridSelector(apiRef, gridPageCountSelector);
+
+  return (
+    <Pagination
+      color="primary"
+      count={pageCount}
+      page={page + 1}
+      dir="ltr"
+      onChange={(event, value) => apiRef.current.setPage(value - 1)}
+    />
+  );
+}
 const apiUrl = process.env.API_URL;
 
+const columns = [
+  { field: "id", headerName: "ت" },
+  { field: "name", headerName: "الاسم" },
+  { field: "school", headerName: "المدرسة" },
+  { field: "govenorate", headerName: "المحافظة" },
+  { field: "institute", headerName: "المعهد" },
+  { field: "poster", headerName: "ملصق" },
+  { field: "code", headerName: "الكود" },
+  { field: "total_amount", headerName: "المبلغ الكلي" },
+  { field: "first_installment", headerName: "القسط الاول" },
+  { field: "second_installment", headerName: "القسط الثاني" },
+  { field: "third_installment", headerName: "القسط الثالث" },
+  { field: "forth_installment", headerName: "القسط الرابع" },
+  { field: "remaining_amount", headerName: "المبلغ المتبقي" },
+  { field: "notes", headerName: "الملاحظات" },
+  {
+    field: "delete",
+    headerName: "الاجراء",
+    sortable: false,
+    disableClickEventBubbling: true,
+    renderCell: (params) => {
+      return <button className="btn btn-danger">حذف</button>;
+    },
+  },
+];
+
+const rows = [
+  { id: 1, name: "Snow", school: "Jon", code: 35 },
+  { id: 2, name: "Lannister", school: "Cersei", code: 42 },
+  { id: 3, name: "Lannister", school: "Jaime", code: 45 },
+  { id: 4, name: "Stark", school: "Arya", code: 16 },
+  { id: 5, name: "Targaryen", school: "Daenerys", code: null },
+  { id: 6, name: "Melisandre", school: null, code: 150 },
+  { id: 7, name: "Clifford", school: "Ferrara", code: 44 },
+  { id: 8, name: "Frances", school: "Rossini", code: 36 },
+  { id: 9, name: "Roxie", school: "Harvey", code: 65 },
+];
 // var { ipcRenderer } = require("electron");
 
 function Reports({ sideBarShow, institutes, institute }) {
@@ -33,83 +94,8 @@ function Reports({ sideBarShow, institutes, institute }) {
   const [search1, setSearch1] = useState("");
   const [search2, setSearch2] = useState("");
   const [searchInstitute, setSearchInstitute] = useState("0");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
-  const getAttendance = async (page, institute_id = "0") => {
-    try {
-      let rr = ``;
-      if (institute_id != "0") {
-        rr = `${apiUrl}/students-attendance?page=${page}&institute_id=${institute_id}`;
-        if (searchType != "0") {
-          rr = `${apiUrl}/students-attendance?page=${page}&institute_id=${institute_id}&search_type=${searchType}&search1=${search1}&search2=${search2}`;
-        }
-      } else {
-        if (searchType != "0") {
-          rr = `${apiUrl}/students-attendance?page=${page}&search_type=${searchType}&search1=${search1}&search2=${search2}`;
-        }
-      }
-      const response = await fetch(
-        rr != `` ? rr : `${apiUrl}/students-attendance?page=${page}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer`,
-          },
-        }
-      );
-      const responseData = await response.json();
-      // if (searchType != "0" || institute_id != "0") {
-      //   if (page == 1) {
-      //     setSearchedData({
-      //       students: responseData.students,
-      //       attendance: responseData.attendance,
-      //       total_students: responseData.total_students,
-      //       page: responseData.page,
-      //     });
-      //   } else {
-      //     setSearchedData({
-      //       students: data.students.concat(responseData.students),
-      //       attendance: responseData.attendance,
-      //       total_students: responseData.total_students,
-      //       page: responseData.page,
-      //     });
-      //   }
-      // } else {
-      //   if (page == 1) {
-      //     setData({
-      //       students: responseData.students,
-      //       attendance: responseData.attendance,
-      //       total_students: responseData.total_students,
-      //       page: responseData.page,
-      //     });
-      //     setSearchedData({
-      //       students: responseData.students,
-      //       attendance: responseData.attendance,
-      //       total_students: responseData.total_students,
-      //       page: responseData.page,
-      //     });
-      //   } else {
-      //     setData({
-      //       students: data.students.concat(responseData.students),
-      //       attendance: responseData.attendance,
-      //       total_students: responseData.total_students,
-      //       page: responseData.page,
-      //     });
-      //   }
-      // }
-      setLoading(false);
-    } catch (error) {
-      console.log(error.message);
-    }
-  };
-  useEffect(() => {
-    setSearchInstitute(institute);
-    if (institute != "0") {
-      getAttendance(1, institute);
-    } else {
-      getAttendance(1);
-    }
-  }, []);
   const handleSearchTypeChange = (e) => {
     setSearchType(e.target.value);
   };
@@ -250,7 +236,7 @@ function Reports({ sideBarShow, institutes, institute }) {
       });
       return (
         <table
-          className="table table-dark table-striped table-bordered table-hover text"
+          className="table table-striped table-bordered table-hover text"
           dir="rtl"
           border="1"
           id="print-table"
@@ -279,7 +265,7 @@ function Reports({ sideBarShow, institutes, institute }) {
       });
       return (
         <table
-          className="table table-dark table-striped table-bordered table-hover text"
+          className="table table-striped table-bordered table-hover text"
           dir="rtl"
           border="1"
           id="print-table"
@@ -296,7 +282,7 @@ function Reports({ sideBarShow, institutes, institute }) {
     }
   };
   return (
-    <section className="main">
+    <section className="">
       <div className="row pt-5 m-0">
         <div
           className={
@@ -306,7 +292,7 @@ function Reports({ sideBarShow, institutes, institute }) {
           }
           id="main-view"
         >
-          <div className="row mt-2">
+          <div className="row mt-3">
             <div className="col-12 top-bg">
               <h5 className="text-end">التقارير</h5>
             </div>
@@ -314,7 +300,7 @@ function Reports({ sideBarShow, institutes, institute }) {
           <div className="row pt-md-3 pr-2 pl-2 mt-md-3 mb-5">
             <div className="col-12">
               <div className="row mt-3">
-                <div className="col-8">
+                <div className="col-9">
                   <form onSubmit={handleSearchButton}>
                     <div className="form-group row mt-1">
                       <div className="col-2 text">
@@ -384,55 +370,22 @@ function Reports({ sideBarShow, institutes, institute }) {
               student_id={confirmModal.student_attendance_id}
               done={confirmModal.attended}
             />
-            <div className="col-12">
+            <div className="col-12" dir="rtl">
               {loading ? (
                 <Loading />
               ) : (
-                <InfiniteScroll
-                  dataLength={
-                    searchType != "0" || searchInstitute != "0"
-                      ? searchedData.page * 100
-                      : data.page * 100
-                  } //This is important field to render the next data
-                  next={() =>
-                    getAttendance(
-                      searchType != "0" || searchInstitute != "0"
-                        ? searchedData.page + 1
-                        : data.page + 1,
-                      searchType != "0" || searchInstitute != "0"
-                        ? searchInstitute
-                        : "0"
-                    )
-                  }
-                  hasMore={
-                    searchType != "0" || searchInstitute != "0"
-                      ? searchedData.total_students !=
-                        searchedData.students.length
-                      : data.total_students != data.students.length
-                  }
-                  loader={<Loading />}
-                  endMessage={
-                    <p className="pb-3 pt-3 text-center text-white">
-                      <b>هذه جميع النتائج</b>
-                    </p>
-                  }
-                  // below props only if you need pull down functionality
-                  // refreshFunction={this.refresh}
-                  // pullDownToRefresh
-                  // pullDownToRefreshThreshold={50}
-                  // pullDownToRefreshContent={
-                  //   <h3 style={{ textAlign: "center" }}>
-                  //     &#8595; Pull down to refresh
-                  //   </h3>
-                  // }
-                  // releaseToRefreshContent={
-                  //   <h3 style={{ textAlign: "center" }}>
-                  //     &#8593; Release to refresh
-                  //   </h3>
-                  // }
-                >
-                  <div className="table-responsive">{render_table()}</div>
-                </InfiniteScroll>
+                <DataGrid
+                  rows={rows}
+                  columns={columns}
+                  pageSize={90}
+                  rowsPerPageOptions={[5]}
+                  autoPageSize={true}
+                  autoHeight={true}
+                  disableColumnMenu={true}
+                  disableSelectionOnClick={true}
+                  disableExtendRowFullWidth={true}
+                  components={{ Pagination: CustomPagination }}
+                />
               )}
             </div>
           </div>

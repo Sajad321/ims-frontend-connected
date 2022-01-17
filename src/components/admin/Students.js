@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { StudentsInfoModal } from "../../common/Modal";
 import { toast } from "react-toastify";
 import InfiniteScroll from "react-infinite-scroll-component";
-import Loading from "../../common/Loading";
+import Loading from "../common/Loading";
 const apiUrl = process.env.API_URL;
 
 function Students({ sideBarShow, edit }) {

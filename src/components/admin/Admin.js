@@ -7,7 +7,7 @@ import AddStudent from "./AddStudent";
 const apiUrl = process.env.API_URL;
 
 function Admin(props) {
-  const [page, setPage] = useState("Reports");
+  const [page, setPage] = useState("States");
 
   const [sideBarShow, setSideBarShow] = useState(true);
 
@@ -42,31 +42,32 @@ function Admin(props) {
     }
   };
   const [dataToChange, setDataToChange] = useState({});
-  const [attendanceStartData, setAttendanceStartData] = useState({
-    institute_id: "",
-    date: "",
+
+  const [states, setStates] = useState({
+    total_states: "",
+    states: [],
   });
-
-  const [institutes, setInstitutes] = useState([]);
-  const [institute, setInstitute] = useState("0");
-
-  const getStuff = async () => {
-    try {
-      const response = await fetch(`${apiUrl}/institute`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer`,
-        },
-      });
-
-      const responseData = await response.json();
-      setInstitutes(responseData.institutes);
-    } catch (error) {
-      console.log(error.message);
-    }
-  };
   useEffect(() => {
-    getStuff();
+    const getStates = async () => {
+      try {
+        const response = await fetch(`${apiUrl}/states`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer`,
+          },
+        });
+
+        const responseData = await response.json();
+        // setStates({
+        //   ...states,
+        //   states: responseData.states,
+        //   total_states: responseData.total_states,
+        // });
+      } catch (error) {
+        console.log(error.message);
+      }
+    };
+    getStates();
   }, []);
 
   const AdminHeaderFunction = (Act) => {
@@ -87,7 +88,6 @@ function Admin(props) {
   const handleStatesButton = () => {
     setPage("States");
     setDataToChange({});
-    getStuff();
   };
 
   const handleReportsButton = () => {
@@ -124,7 +124,7 @@ function Admin(props) {
         {/* End of Navbar */}
 
         {/* States */}
-        <States sideEvent={sideEvent} sideBarShow={sideBarShow} />
+        <States sideEvent={sideEvent} sideBarShow={sideBarShow} data={states} />
         <AdminFooter sideBarShow={sideBarShow} />
       </Fragment>
     );

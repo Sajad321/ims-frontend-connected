@@ -1,30 +1,23 @@
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { AddModal, StudentsModal } from "../common/Modal";
+// import { AddModal, StudentsModal } from "../common/Modal";
 import { Dropdown } from "react-bootstrap";
 import SettingsModal from "./SettingsModal";
+import profile from "../../assets/svg/profile.png";
 
 function AdminHeader(props) {
   const [addModalShow, setAddModalShow] = useState(false);
-  const [studentsModalShow, setStudentsModalShow] = useState(false);
   const [settingsModalShow, setSettingsModalShow] = useState(false);
   return (
     <nav className="navbar navbar-dark navbar-expand-md">
-      <AddModal
+      {/* <AddModal
         show={addModalShow}
         onHide={() => setAddModalShow(false)}
         AddStudentButton={props.AddStudentButton}
         AddInstituteButton={props.AddInstituteButton}
         AddInstallmentButton={props.AddInstallmentButton}
-      />
-      <StudentsModal
-        show={studentsModalShow}
-        onHide={() => setStudentsModalShow(false)}
-        StudentsAttendanceButton={props.StudentsAttendanceButton}
-        StudentsInstallmentsButton={props.StudentsInstallmentsButton}
-        StudentsButton={props.StudentsButton}
-      />
+      /> */}
       <SettingsModal
         show={settingsModalShow}
         onHide={() => setSettingsModalShow(false)}
@@ -32,7 +25,7 @@ function AdminHeader(props) {
       />
       <div className="row">
         <div className="width-others-wide fixed-top me-auto logo" id="top-bar">
-          <div className="row justify-content-center">
+          <div className="row justify-content-center pt-3">
             <div className="col-auto">
               <Dropdown alignRight>
                 <Dropdown.Toggle
@@ -40,7 +33,12 @@ function AdminHeader(props) {
                   bsPrefix="nn"
                 >
                   <div className="nav-profile-img">
-                    <img alt="profile" />
+                    <img
+                      alt="profile"
+                      src={profile}
+                      width={30}
+                      className="me-2"
+                    />
                   </div>
                   <div className="nav-profile-text">
                     <p className="mb-1 text-black">
@@ -97,6 +95,24 @@ function AdminHeader(props) {
                 <div className="nav_list">
                   <a
                     href="#"
+                    className={"nav_link " + props.Active.Manage}
+                    onClick={props.MainButton}
+                  >
+                    <FontAwesomeIcon
+                      icon="user-cog"
+                      className={"nav_logo-icon " + props.Active.Manage}
+                      color="white"
+                      size="2x"
+                    />
+                    <span
+                      className={"nav_name " + props.Active.Manage}
+                      id="nav-text"
+                    >
+                      الادارة
+                    </span>
+                  </a>
+                  <a
+                    href="#"
                     className={"nav_link " + props.Active.States}
                     onClick={props.MainButton}
                   >
@@ -119,7 +135,7 @@ function AdminHeader(props) {
                     onClick={props.ReportsButton}
                   >
                     <FontAwesomeIcon
-                      icon="school"
+                      icon="exclamation-circle"
                       className={"nav_logo-icon " + props.Active.Reports}
                       color="white"
                       size="2x"
@@ -133,21 +149,6 @@ function AdminHeader(props) {
                   </a>
                 </div>
               </div>
-              <a
-                href="#"
-                className="nav_link_bottom"
-                onClick={() => setSettingsModalShow(true)}
-              >
-                <FontAwesomeIcon
-                  icon="cog"
-                  className="nav_logo-icon"
-                  color="white"
-                  size="2x"
-                />
-                <span className="nav_name" id="nav-text">
-                  الاعدادات
-                </span>
-              </a>
             </nav>
           </div>
         </div>
