@@ -3,8 +3,15 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { AddStateModal } from "../common/Modals";
 const apiUrl = process.env.API_URL;
 
-function States({ sideBarShow, data, state, setState }) {
+function States({
+  sideBarShow,
+  data,
+  state,
+  setSelecedState,
+  handleStateStudentsButton,
+}) {
   const [addStateModalShow, setAddStateModalShow] = useState(false);
+
   return (
     <section className="">
       <AddStateModal
@@ -35,32 +42,16 @@ function States({ sideBarShow, data, state, setState }) {
                 اضافة منطقة
               </button>
             </div>
-            <div className="col-sm-3 p-2">
-              <div className="card card-common">
-                <div className="card-body" dir="ltr">
-                  <div className="d-flex justify-content-between">
-                    <FontAwesomeIcon
-                      icon="house-user"
-                      color="white"
-                      size="3x"
-                    />
-                    <div className="text-right text-white">
-                      <h5>المنصور صيفي</h5>
-                    </div>
-                  </div>
-                </div>
-                <div className="row m-0">
-                  <button className="col-6 btn btn-secondary">تعديل</button>
-                  <button className="col-6 btn btn-danger">حذف</button>
-                </div>
-              </div>
-            </div>
+
             {data.states.map((state) => {
               return (
                 <div key={state.id} className="col-sm-3 p-2">
                   <div
                     className="card card-common"
-                    onClick={() => setState(state)}
+                    onClick={() => {
+                      setSelecedState(state);
+                      handleStateStudentsButton();
+                    }}
                   >
                     <div className="card-body" dir="ltr">
                       <div className="d-flex justify-content-between">

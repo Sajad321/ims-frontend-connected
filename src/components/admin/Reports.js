@@ -3,7 +3,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { toast } from "react-toastify";
 import printJS from "print-js";
 import ConfirmModal from "../common/ConfirmModal";
-import InfiniteScroll from "react-infinite-scroll-component";
 import Loading from "../common/Loading";
 import ReactHTMLTableToExcel from "react-html-table-to-excel";
 import Pagination from "@mui/material/Pagination";
@@ -71,7 +70,7 @@ const rows = [
 ];
 // var { ipcRenderer } = require("electron");
 
-function Reports({ sideBarShow, institutes, institute }) {
+function Reports({ sideBarShow }) {
   const [data, setData] = useState({
     students: [],
     attendance: [],
@@ -84,12 +83,7 @@ function Reports({ sideBarShow, institutes, institute }) {
     total_students: "",
     page: 1,
   });
-  const [confirmModal, setConfirmModal] = useState({
-    visbile: false,
-    index: 0,
-    student_attendance_id: 0,
-    attended: 0,
-  });
+
   const [searchType, setSearchType] = useState("0");
   const [search1, setSearch1] = useState("");
   const [search2, setSearch2] = useState("");
@@ -118,19 +112,6 @@ function Reports({ sideBarShow, institutes, institute }) {
     e.preventDefault();
     setLoading(true);
     getAttendance(1, searchInstitute);
-  };
-
-  const printTable = () => {
-    // let divToPrint = document.getElementById("print-table");
-    // newWin = window.open("");
-    // newWin.document.write(divToPrint.outerHTML);
-    // newWin.print();
-    // newWin.close();
-    printJS({
-      printable: "print-table",
-      type: "html",
-    });
-    // window.print();
   };
 
   const searchBar = () => {
@@ -220,67 +201,7 @@ function Reports({ sideBarShow, institutes, institute }) {
       );
     }
   };
-  const render_table = () => {
-    if (searchType != "0" || searchInstitute != "0") {
-      const render_data = searchedData.students.map((student, index) => {
-        return (
-          <tr
-            key={student.id}
-            className="font-weight-bold text-white"
-            className="d-flex"
-          >
-            <td className="t-id">{index + 1}</td>
-            <td className="t-name">{student.name}</td>
-          </tr>
-        );
-      });
-      return (
-        <table
-          className="table table-striped table-bordered table-hover text"
-          dir="rtl"
-          border="1"
-          id="print-table"
-        >
-          <thead className="thead-dark">
-            <tr className="d-flex">
-              <th className="t-id">ت</th>
-              <th className="t-name">الاسم</th>
-            </tr>
-          </thead>
-          <tbody>{render_data}</tbody>
-        </table>
-      );
-    } else {
-      const render_data = data.students.map((student, index) => {
-        return (
-          <tr
-            key={student.id}
-            className="font-weight-bold text-white"
-            className="d-flex"
-          >
-            <td className="t-id">{index + 1}</td>
-            <td className="t-name">{student.name}</td>
-          </tr>
-        );
-      });
-      return (
-        <table
-          className="table table-striped table-bordered table-hover text"
-          dir="rtl"
-          border="1"
-          id="print-table"
-        >
-          <thead className="thead-dark">
-            <tr className="d-flex">
-              <th className="t-id">ت</th>
-              <th className="t-name">الاسم</th>
-            </tr>
-          </thead>
-          <tbody>{render_data}</tbody>
-        </table>
-      );
-    }
-  };
+
   return (
     <section className="">
       <div className="row pt-5 m-0">
@@ -360,16 +281,6 @@ function Reports({ sideBarShow, institutes, institute }) {
                 </div>
               </div>
             </div>
-            <ConfirmModal
-              show={confirmModal.visbile}
-              onHide={() =>
-                setConfirmModal({ ...confirmModal, visbile: false })
-              }
-              // handleToggleButton={handleAttendanceToggleButton}
-              index={confirmModal.index}
-              student_id={confirmModal.student_attendance_id}
-              done={confirmModal.attended}
-            />
             <div className="col-12" dir="rtl">
               {loading ? (
                 <Loading />

@@ -96,7 +96,7 @@ function AdminHeader(props) {
                   <a
                     href="#"
                     className={"nav_link " + props.Active.Manage}
-                    onClick={props.MainButton}
+                    onClick={props.handleManageButton}
                   >
                     <FontAwesomeIcon
                       icon="user-cog"

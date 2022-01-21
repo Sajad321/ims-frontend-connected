@@ -222,6 +222,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 .top-bg {
   background-color: #f0f8ff;
+  margin-top: 5px;
   border-top: 1px solid black;
   border-bottom: 1px solid black;
 }
@@ -327,6 +328,7 @@ thead .button.descending::after {
 }
 #top-bar {
   background-color: white;
+  border-bottom: 1px solid black;
 }
 .nav {
   height: 100%;
@@ -620,7 +622,7 @@ thead .button.descending::after {
 }
 
 .padding-form {
-  padding-top: 200px;
+  padding-top: 90px;
 }
 
 .times-icon {
@@ -636,16 +638,6 @@ thead .button.descending::after {
   color: #00b82b;
 }
 
-.table-dark {
-  background-color: #212529;
-}
-
-.t-date {
-  width: 130px;
-}
-.t-name {
-  width: 250px;
-}
-.t-id {
-  width: 70px;
-}
+// .css-pay28z-MuiDataGrid-root {
+//   font-size: 14px !important;
+// }

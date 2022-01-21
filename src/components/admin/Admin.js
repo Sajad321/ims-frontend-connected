@@ -3,7 +3,9 @@ import AdminHeader from "./AdminHeader";
 import AdminFooter from "./AdminFooter";
 import States from "./States";
 import Reports from "./Reports";
+import StateStudents from "./StateStudents";
 import AddStudent from "./AddStudent";
+import Manage from "./Manage";
 const apiUrl = process.env.API_URL;
 
 function Admin(props) {
@@ -47,6 +49,7 @@ function Admin(props) {
     total_states: "",
     states: [],
   });
+  const [selectedState, setSelecedState] = useState({});
   useEffect(() => {
     const getStates = async () => {
       try {
@@ -58,11 +61,11 @@ function Admin(props) {
         });
 
         const responseData = await response.json();
-        // setStates({
-        //   ...states,
-        //   states: responseData.states,
-        //   total_states: responseData.total_states,
-        // });
+        setStates({
+          ...states,
+          states: responseData.states,
+          total_states: responseData.total_states,
+        });
       } catch (error) {
         console.log(error.message);
       }
@@ -76,6 +79,7 @@ function Admin(props) {
         logoutWithRedirect={props.logoutWithRedirect}
         Active={Act}
         MainButton={handleStatesButton}
+        handleManageButton={handleManageButton}
         ReportsButton={handleReportsButton}
         AddStudentButton={handleAddStudentButton}
         sideEvent={sideEvent}
@@ -95,15 +99,13 @@ function Admin(props) {
     setDataToChange({});
   };
 
-  const handleStateStudentsButton = (institute_id) => {
-    setInstitute(institute_id);
+  const handleStateStudentsButton = () => {
     setPage("StateStudents");
     setDataToChange({});
   };
 
-  const handleUsersButton = (institute_id) => {
-    setInstitute(institute_id);
-    setPage("Users");
+  const handleManageButton = () => {
+    setPage("Manage");
     setDataToChange({});
   };
 
@@ -124,7 +126,13 @@ function Admin(props) {
         {/* End of Navbar */}
 
         {/* States */}
-        <States sideEvent={sideEvent} sideBarShow={sideBarShow} data={states} />
+        <States
+          sideEvent={sideEvent}
+          sideBarShow={sideBarShow}
+          data={states}
+          setSelecedState={setSelecedState}
+          handleStateStudentsButton={handleStateStudentsButton}
+        />
         <AdminFooter sideBarShow={sideBarShow} />
       </Fragment>
     );
@@ -142,13 +150,13 @@ function Admin(props) {
         <AdminFooter sideBarShow={sideBarShow} />
       </Fragment>
     );
-  } else if (page == "Users") {
+  } else if (page == "Manage") {
     return (
       <Fragment>
-        {AdminHeaderFunction({ Users: "active" })}
+        {AdminHeaderFunction({ Manage: "active" })}
         {/* End of Navbar */}
-        {/* Users */}
-        <Users
+        {/* Manage */}
+        <Manage
           sideEvent={sideEvent}
           sideBarShow={sideBarShow}
           edit={handleEditStudentButton}
@@ -163,11 +171,10 @@ function Admin(props) {
         {/* End of Navbar */}
         {/* StateStudents */}
         <StateStudents
-          edit={handleEditInstallmentButton}
-          page={handleMainButton}
+          page={handleStatesButton}
           sideBarShow={sideBarShow}
-          institutes={institutes}
-          institute={institute}
+          selectedState={selectedState}
+          add={handleAddStudentButton}
           edit={handleEditStudentButton}
         />
         <AdminFooter sideBarShow={sideBarShow} />
@@ -180,7 +187,7 @@ function Admin(props) {
         {/* End of Navbar */}
         {/* AddStudent */}
         <AddStudent
-          page={handleMainButton}
+          page={handleStatesButton}
           dataToChange={dataToChange}
           sideBarShow={sideBarShow}
         />
