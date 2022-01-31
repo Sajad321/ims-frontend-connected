@@ -42,7 +42,6 @@ function Students({ sideBarShow, selectedState, add, edit }) {
     total_students: "",
     page: "",
   });
-  const [searchType, setSearchType] = useState("0");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -131,11 +130,18 @@ function Students({ sideBarShow, selectedState, add, edit }) {
   const handleSearchButton = (e) => {
     e.preventDefault();
     setLoading(true);
+    const reg = new RegExp(search, "i");
+    setSearchedData({
+      ...data,
+      students: data.students.filter((student) => student.name.match(reg)),
+    });
+    setLoading(false);
   };
 
   const handleEditButton = (student, photo) => {
     edit({ ...student, photo });
   };
+
   const handleDelete = (id) => {
     let searchedIndex = [...searchedData.searchedStudents].findIndex(
       (i) => i.id == id
@@ -148,6 +154,7 @@ function Students({ sideBarShow, selectedState, add, edit }) {
     nee = nee.filter((s, i) => i != index);
     setData({ ...data, students: nee });
   };
+
   const handleDeleteButton = (id) => {
     const handleStudentDelete = async () => {
       try {
@@ -222,7 +229,7 @@ function Students({ sideBarShow, selectedState, add, edit }) {
                   <Loading />
                 ) : (
                   <DataGrid
-                    rows={data.students}
+                    rows={search != "" ? searchedData.students : data.students}
                     columns={columns}
                     pageSize={90}
                     rowsPerPageOptions={[5]}

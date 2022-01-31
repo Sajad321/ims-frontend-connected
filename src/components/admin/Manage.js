@@ -33,8 +33,8 @@ function CustomPagination() {
 
 const columns = [
   { field: "id", headerName: "ت", width: 20 },
-  { field: "username", headerName: "الاسم", width: 150 },
-  { field: "email", headerName: "البريد الالكتروني", width: 200 },
+  { field: "name", headerName: "الاسم", width: 150 },
+  { field: "username", headerName: "البريد الالكتروني", width: 200 },
   { field: "authority_v", headerName: "الصلاحية", flex: 1 },
   {
     field: "delete",
@@ -71,10 +71,9 @@ function Manage({ sideBarShow, edit }) {
     page: "",
   });
   const [addUserModalShow, setAddUserModalShow] = useState(false);
-  const [searchType, setSearchType] = useState("0");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-  console.log(data);
+
   const getUsers = async () => {
     try {
       const response = await fetch(`${apiUrl}/users`, {
@@ -117,6 +116,12 @@ function Manage({ sideBarShow, edit }) {
   const handleSearchButton = (e) => {
     e.preventDefault();
     setLoading(true);
+    const reg = new RegExp(search, "i");
+    setSearchedData({
+      ...data,
+      users: data.users.filter((user) => user.name.match(reg)),
+    });
+    setLoading(false);
   };
 
   const handleEditButton = (student, photo) => {
@@ -216,7 +221,7 @@ function Manage({ sideBarShow, edit }) {
                   <Loading />
                 ) : (
                   <DataGrid
-                    rows={data.users}
+                    rows={search != "" ? searchedData.users : data.users}
                     columns={columns}
                     pageSize={90}
                     rowsPerPageOptions={[5]}
