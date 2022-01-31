@@ -50,26 +50,31 @@ function Admin(props) {
     states: [],
   });
   const [selectedState, setSelecedState] = useState({});
-  useEffect(() => {
-    const getStates = async () => {
-      try {
-        const response = await fetch(`${apiUrl}/states`, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer`,
-          },
-        });
+  const getStates = async () => {
+    try {
+      const response = await fetch(`${apiUrl}/states`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer`,
+        },
+      });
 
-        const responseData = await response.json();
-        setStates({
-          ...states,
-          states: responseData.states,
-          total_states: responseData.total_states,
-        });
-      } catch (error) {
-        console.log(error.message);
-      }
-    };
+      const responseData = await response.json();
+      // responseData.states.filter(
+      //   (state) =>
+      //     state.id in JSON.parse(localStorage.getItem("token")).authority
+      // );
+      // responseData.total_states = responseData.states.length;
+      setStates({
+        ...states,
+        states: responseData.states,
+        total_states: responseData.total_states,
+      });
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
+  useEffect(() => {
     getStates();
   }, []);
 
@@ -81,7 +86,6 @@ function Admin(props) {
         MainButton={handleStatesButton}
         handleManageButton={handleManageButton}
         ReportsButton={handleReportsButton}
-        AddStudentButton={handleAddStudentButton}
         sideEvent={sideEvent}
         sideBarShow={sideBarShow}
         setSideBarShow={setSideBarShow}
@@ -90,6 +94,7 @@ function Admin(props) {
   };
 
   const handleStatesButton = () => {
+    getStates();
     setPage("States");
     setDataToChange({});
   };
@@ -145,7 +150,7 @@ function Admin(props) {
         <Reports
           sideEvent={sideEvent}
           sideBarShow={sideBarShow}
-          edit={handleEditStudentButton}
+          states={states.states}
         />
         <AdminFooter sideBarShow={sideBarShow} />
       </Fragment>

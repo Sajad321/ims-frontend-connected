@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import Loading from "../common/Loading";
 import ReactHTMLTableToExcel from "react-html-table-to-excel";
 import Pagination from "@mui/material/Pagination";
+import TablePagination from "@mui/material/TablePagination";
 import {
   DataGrid,
   gridPageCountSelector,
@@ -30,48 +31,7 @@ function CustomPagination() {
   );
 }
 
-const columns = [
-  { field: "id", headerName: "ت" },
-  { field: "name", headerName: "الاسم" },
-  { field: "school", headerName: "المدرسة" },
-  { field: "govenorate", headerName: "المحافظة" },
-  { field: "branch", headerName: "الفرع" },
-  { field: "institute", headerName: "المعهد" },
-  { field: "first_phone", headerName: "رقم الهاتف الاول", flex: 1 },
-  { field: "second_phone", headerName: "رقم الهاتف الثاني", flex: 1 },
-  { field: "poster", headerName: "ملصق" },
-  { field: "telegram_username", headerName: "المعرف" },
-  { field: "code", headerName: "الكود" },
-  { field: "total_amount", headerName: "المبلغ الكلي" },
-  { field: "first_installment", headerName: "القسط الاول" },
-  { field: "second_installment", headerName: "القسط الثاني" },
-  { field: "third_installment", headerName: "القسط الثالث" },
-  { field: "forth_installment", headerName: "القسط الرابع" },
-  { field: "remaining_amount", headerName: "المبلغ المتبقي" },
-  { field: "notes", headerName: "الملاحظات" },
-  {
-    field: "delete",
-    headerName: "الاجراء",
-    sortable: false,
-    disableClickEventBubbling: true,
-    renderCell: (params) => {
-      return <button className="btn btn-danger">حذف</button>;
-    },
-  },
-];
-
-const rows = [
-  { id: 1, name: "Snow", school: "Jon", code: 35 },
-  { id: 2, name: "Lannister", school: "Cersei", code: 42 },
-  { id: 3, name: "Lannister", school: "Jaime", code: 45 },
-  { id: 4, name: "Stark", school: "Arya", code: 16 },
-  { id: 5, name: "Targaryen", school: "Daenerys", code: null },
-  { id: 6, name: "Melisandre", school: null, code: 150 },
-  { id: 7, name: "Clifford", school: "Ferrara", code: 44 },
-  { id: 8, name: "Frances", school: "Rossini", code: 36 },
-  { id: 9, name: "Roxie", school: "Harvey", code: 65 },
-];
-function Students({ sideBarShow, add, edit }) {
+function Students({ sideBarShow, selectedState, add, edit }) {
   const [data, setData] = useState({
     students: [],
     total_students: "",
@@ -86,6 +46,43 @@ function Students({ sideBarShow, add, edit }) {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
+  const columns = [
+    { field: "id", headerName: "ت" },
+    { field: "name", headerName: "الاسم" },
+    { field: "school", headerName: "المدرسة" },
+    { field: "governorate_v", headerName: "المحافظة" },
+    { field: "branch_v", headerName: "الفرع" },
+    { field: "institute_v", headerName: "المعهد" },
+    { field: "first_phone", headerName: "رقم الهاتف الاول", flex: 1 },
+    { field: "second_phone", headerName: "رقم الهاتف الثاني", flex: 1 },
+    { field: "poster_v", headerName: "ملصق" },
+    { field: "telegram_username", headerName: "المعرف" },
+    { field: "code", headerName: "الكود" },
+    { field: "total_amount", headerName: "المبلغ الكلي" },
+    { field: "first_installment", headerName: "القسط الاول" },
+    { field: "second_installment", headerName: "القسط الثاني" },
+    { field: "third_installment", headerName: "القسط الثالث" },
+    { field: "forth_installment", headerName: "القسط الرابع" },
+    { field: "remaining_amount", headerName: "المبلغ المتبقي" },
+    { field: "notes", headerName: "الملاحظات" },
+    {
+      field: "delete",
+      headerName: "الاجراء",
+      sortable: false,
+      disableClickEventBubbling: true,
+      renderCell: (params) => {
+        return (
+          <button
+            className="btn btn-danger"
+            onClick={() => handleDeleteButton(params.id)}
+          >
+            حذف
+          </button>
+        );
+      },
+    },
+  ];
+
   const getStudents = async () => {
     try {
       const response = await fetch(`${apiUrl}/students`, {
@@ -96,11 +93,27 @@ function Students({ sideBarShow, add, edit }) {
       });
 
       const responseData = await response.json();
+
+      responseData.students.map((s) => {
+        s["governorate_v"] = s.governorate.name;
+        s["branch_v"] = s.branch.name;
+        s["institute_v"] = s.institute.name;
+        s["poster_v"] = s.poster.name;
+        s["first_installment"] = s.installments[0].amount;
+        s["second_installment"] = s.installments[1].amount;
+        s["third_installment"] = s.installments[2].amount;
+        s["forth_installment"] = s.installments[3].amount;
+      });
+
       setData({
-        students: responseData.students,
+        students: responseData.students.filter(
+          (s) => s.state.id == selectedState.id
+        ),
       });
       setSearchedData({
-        students: responseData.students,
+        students: responseData.students.filter(
+          (s) => s.state.id == selectedState.id
+        ),
       });
       setLoading(false);
     } catch (error) {
@@ -124,24 +137,23 @@ function Students({ sideBarShow, add, edit }) {
     edit({ ...student, photo });
   };
   const handleDelete = (id) => {
-    let searchedIndex = [...searchedStudents].findIndex((i) => i.id == id);
-    let neeSerached = [...searchedStudents];
+    let searchedIndex = [...searchedData.searchedStudents].findIndex(
+      (i) => i.id == id
+    );
+    let neeSerached = [...searchedData.searchedStudents];
     neeSerached = neeSerached.filter((s, i) => i != searchedIndex);
     setSearchedData({ ...searchedData, students: neeSerached });
-    let index = [...students].findIndex((i) => i.id == id);
-    let nee = [...students];
+    let index = [...data.students].findIndex((i) => i.id == id);
+    let nee = [...data.students];
     nee = nee.filter((s, i) => i != index);
     setData({ ...data, students: nee });
   };
-  const handleDeleteButton = (index, id) => {
+  const handleDeleteButton = (id) => {
     const handleStudentDelete = async () => {
       try {
-        const response = await fetch(
-          `${apiUrl}/student?student_id=${Number(id)}`,
-          {
-            method: "DELETE",
-          }
-        );
+        const response = await fetch(`${apiUrl}/students/${Number(id)}`, {
+          method: "DELETE",
+        });
 
         const responseData = await response.json();
       } catch (error) {
@@ -210,7 +222,7 @@ function Students({ sideBarShow, add, edit }) {
                   <Loading />
                 ) : (
                   <DataGrid
-                    rows={rows}
+                    rows={data.students}
                     columns={columns}
                     pageSize={90}
                     rowsPerPageOptions={[5]}

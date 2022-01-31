@@ -5,6 +5,8 @@ import { toast } from "react-toastify";
 import { default as ReactSelect } from "react-select";
 import { components } from "react-select";
 
+const apiUrl = process.env.API_URL;
+
 const colourOptions = [
   { value: "ocean1", label: "كل الصلاحيات" },
   { value: "blue", label: "Blue" },
@@ -81,12 +83,44 @@ const Option = (props) => {
   );
 };
 export function AddUserModal(props) {
-  const [optionSelected, setOptionSelected] = useState(null);
+  const [dataToSend, setDataToSend] = useState({
+    id: "",
+    authority: null,
+    name: "",
+    email: "",
+    password: "",
+  });
 
   const handleChange = (selected) => {
-    setOptionSelected(selected);
+    setDataToSend({ ...dataToSend, authority: selected });
+  };
+  const handleNameChange = (e) => {
+    setDataToSend({ ...dataToSend, name: e.target.value });
+  };
+  const handleEmailChange = (e) => {
+    setDataToSend({ ...dataToSend, email: e.target.value });
+  };
+  const handlePasswordChange = (e) => {
+    setDataToSend({ ...dataToSend, password: e.target.value });
   };
 
+  const saveUser = async () => {
+    try {
+      const response = await fetch(`${apiUrl}/users`, {
+        method: dataToSend.id != "" ? "PATCH" : "POST",
+        body: dataToSend,
+      });
+      const responseData = await response.json();
+
+      toast.success("تم حفظ الطالب");
+    } catch (error) {
+      console.log(error.message);
+      toast.error("فشل الحفظ");
+    }
+  };
+  const handleSubmit = (e) => {
+    saveUser();
+  };
   return (
     <Modal
       show={props.show}
@@ -99,42 +133,42 @@ export function AddUserModal(props) {
         <Modal.Title>اضافة</Modal.Title>
       </Modal.Header>
       <Modal.Body className="row">
-        <div class="input-group mb-3">
+        <div className="input-group mb-3">
           <input
             id="name"
             type="text"
             placeholder="name"
             className="form-control "
-            //   onChange={handleNameChange}
-            //   value={dataToSend.name}
+            onChange={handleNameChange}
+            value={dataToSend.name}
             required
           ></input>
         </div>
-        <div class="input-group mb-3">
+        <div className="input-group mb-3">
           <input
             id="email"
             type="text"
             placeholder="email"
             className="form-control "
-            //   onChange={handleNameChange}
-            //   value={dataToSend.name}
+            onChange={handleEmailChange}
+            value={dataToSend.email}
             required
           ></input>
         </div>
-        <div class="input-group mb-3">
+        <div className="input-group mb-3">
           <input
             id="password"
-            type="text"
+            type="password"
             placeholder="password"
             className="form-control"
-            //   onChange={handleNameChange}
-            //   value={dataToSend.name}
+            onChange={handlePasswordChange}
+            value={dataToSend.password}
             required
           ></input>
         </div>
         <div className="col-12">
           <span
-            class="d-inline-block w-100"
+            className="d-inline-block w-100"
             data-toggle="popover"
             data-trigger="focus"
             data-content="Please selecet account(s)"
@@ -149,7 +183,7 @@ export function AddUserModal(props) {
               }}
               onChange={handleChange}
               allowSelectAll={true}
-              value={optionSelected}
+              value={dataToSend.authority}
               placeholder="الصلاحية"
             />
           </span>
@@ -169,6 +203,7 @@ export function AddUserModal(props) {
         <div className="">
           <Button
             onClick={() => {
+              handleSubmit();
               props.onHide();
             }}
             className="btn btn-primary"

@@ -3,11 +3,6 @@ import { toast } from "react-toastify";
 const apiUrl = process.env.API_URL;
 
 function AddStudent({ page, dataToChange, sideBarShow }) {
-  const [data, setData] = useState({
-    branches: [],
-    governorates: [],
-    posters: [],
-  });
   const [dataToSend, setDataToSend] = useState({
     id: "",
     name: "",
@@ -44,6 +39,9 @@ function AddStudent({ page, dataToChange, sideBarShow }) {
     note: "",
   });
   const [saving, setSaving] = useState(false);
+  const [governorates, setGovenorates] = useState([]);
+  const [branches, setBranches] = useState([]);
+  const [posters, setPosters] = useState([]);
   useEffect(() => {
     const getGovenorates = async () => {
       try {
@@ -275,7 +273,7 @@ function AddStudent({ page, dataToChange, sideBarShow }) {
                       required
                     >
                       <option selected>اختر</option>
-                      {data.branches.map((branch) => (
+                      {branches.map((branch) => (
                         <option key={branch.id} value={branch.id}>
                           {branch.name}
                         </option>
@@ -301,7 +299,7 @@ function AddStudent({ page, dataToChange, sideBarShow }) {
                       required
                     >
                       <option selected>اختر</option>
-                      {data.governorates.map((governorate) => (
+                      {governorates.map((governorate) => (
                         <option key={governorate.id} value={governorate.id}>
                           {governorate.name}
                         </option>
@@ -379,7 +377,7 @@ function AddStudent({ page, dataToChange, sideBarShow }) {
                       required
                     >
                       <option selected>اختر</option>
-                      {data.posters.map((poster) => (
+                      {posters.map((poster) => (
                         <option key={poster.id} value={poster.id}>
                           {poster.name}
                         </option>

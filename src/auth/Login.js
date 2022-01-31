@@ -6,16 +6,13 @@ const { ipcRenderer } = require("electron");
 const apiUrl = process.env.API_URL;
 
 async function loginUser(credentials) {
-  return fetch(
-    `${apiUrl}/login?username=${credentials.username}&password=${credentials.password}`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      // body: JSON.stringify(credentials),
-    }
-  )
+  return fetch(`${apiUrl}/login`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(credentials),
+  })
     .then((data) => data.json())
     .catch((error) => {
       console.log(error);

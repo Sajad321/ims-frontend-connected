@@ -31,65 +31,102 @@ function CustomPagination() {
 }
 const apiUrl = process.env.API_URL;
 
-const columns = [
-  { field: "id", headerName: "ت" },
-  { field: "name", headerName: "الاسم" },
-  { field: "school", headerName: "المدرسة" },
-  { field: "govenorate", headerName: "المحافظة" },
-  { field: "institute", headerName: "المعهد" },
-  { field: "poster", headerName: "ملصق" },
-  { field: "code", headerName: "الكود" },
-  { field: "total_amount", headerName: "المبلغ الكلي" },
-  { field: "first_installment", headerName: "القسط الاول" },
-  { field: "second_installment", headerName: "القسط الثاني" },
-  { field: "third_installment", headerName: "القسط الثالث" },
-  { field: "forth_installment", headerName: "القسط الرابع" },
-  { field: "remaining_amount", headerName: "المبلغ المتبقي" },
-  { field: "notes", headerName: "الملاحظات" },
-  {
-    field: "delete",
-    headerName: "الاجراء",
-    sortable: false,
-    disableClickEventBubbling: true,
-    renderCell: (params) => {
-      return <button className="btn btn-danger">حذف</button>;
-    },
-  },
-];
-
-const rows = [
-  { id: 1, name: "Snow", school: "Jon", code: 35 },
-  { id: 2, name: "Lannister", school: "Cersei", code: 42 },
-  { id: 3, name: "Lannister", school: "Jaime", code: 45 },
-  { id: 4, name: "Stark", school: "Arya", code: 16 },
-  { id: 5, name: "Targaryen", school: "Daenerys", code: null },
-  { id: 6, name: "Melisandre", school: null, code: 150 },
-  { id: 7, name: "Clifford", school: "Ferrara", code: 44 },
-  { id: 8, name: "Frances", school: "Rossini", code: 36 },
-  { id: 9, name: "Roxie", school: "Harvey", code: 65 },
-];
-// var { ipcRenderer } = require("electron");
-
-function Reports({ sideBarShow }) {
+function Reports({ sideBarShow, states }) {
   const [data, setData] = useState({
     students: [],
-    attendance: [],
     total_students: "",
+    total_installments: "",
+    total_first_installment: "",
+    total_second_installment: "",
+    total_third_installment: "",
+    total_forth_installment: "",
+    total_remaining: "",
     page: 1,
   });
   const [searchedData, setSearchedData] = useState({
     students: [],
-    attendance: [],
     total_students: "",
+    total_installments: "",
+    total_first_installment: "",
+    total_second_installment: "",
+    total_third_installment: "",
+    total_forth_installment: "",
+    total_remaining: "",
     page: 1,
   });
 
   const [searchType, setSearchType] = useState("0");
   const [search1, setSearch1] = useState("");
   const [search2, setSearch2] = useState("");
-  const [searchInstitute, setSearchInstitute] = useState("0");
+  const [searchState, setSearchState] = useState("0");
   const [loading, setLoading] = useState(false);
 
+  const getStudents = async () => {
+    try {
+      const response = await fetch(`${apiUrl}/students`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer`,
+        },
+      });
+
+      const responseData = await response.json();
+
+      // responseData.states.filter(
+      //   (state) =>
+      //     state.id in JSON.parse(localStorage.getItem("token")).authority
+      // );
+      // responseData.total_states = responseData.states.length;
+      let total_installments = 0;
+      let total_first_installment = 0;
+      let total_second_installment = 0;
+      let total_third_installment = 0;
+      let total_forth_installment = 0;
+      let total_remaining = 0;
+      responseData.students.map((s) => {
+        s["governorate_v"] = s.governorate.name;
+        s["branch_v"] = s.branch.name;
+        s["institute_v"] = s.institute.name;
+        s["poster_v"] = s.poster.name;
+        s["first_installment"] = s.installments[0].amount;
+        s["second_installment"] = s.installments[1].amount;
+        s["third_installment"] = s.installments[2].amount;
+        s["forth_installment"] = s.installments[3].amount;
+        total_installments += s.total_amount;
+        total_first_installment += s.installments[0].amount;
+        total_second_installment += s.installments[1].amount;
+        total_third_installment += s.installments[2].amount;
+        total_forth_installment += s.installments[3].amount;
+        total_remaining += s.remaining_amount;
+      });
+
+      setData({
+        students: responseData.students,
+        total_installments,
+        total_first_installment,
+        total_second_installment,
+        total_third_installment,
+        total_forth_installment,
+        total_remaining,
+      });
+      setSearchedData({
+        students: responseData.students,
+        total_installments,
+        total_first_installment,
+        total_second_installment,
+        total_third_installment,
+        total_forth_installment,
+        total_remaining,
+      });
+      setLoading(false);
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
+
+  useEffect(() => {
+    getStudents();
+  }, []);
   const handleSearchTypeChange = (e) => {
     setSearchType(e.target.value);
   };
@@ -99,20 +136,263 @@ function Reports({ sideBarShow }) {
   const handleSearch2Change = (e) => {
     setSearch2(e.target.value);
   };
-  const handleInstituteChange = (e) => {
+  console.log(data, searchedData);
+  const handleStateChange = (e) => {
+    let total_installments = 0;
+    let total_first_installment = 0;
+    let total_second_installment = 0;
+    let total_third_installment = 0;
+    let total_forth_installment = 0;
+    let total_remaining = 0;
     if (e.target.value != "0") {
-      setSearchInstitute(e.target.value);
-      getAttendance(1, e.target.value);
+      setSearchState(e.target.value);
+      setSearchedData({
+        ...data,
+        students: data.students
+          .filter((student) => student.state.id == e.target.value)
+          .map((s) => {
+            total_installments += s.total_amount;
+            total_first_installment += s.installments[0].amount;
+            total_second_installment += s.installments[1].amount;
+            total_third_installment += s.installments[2].amount;
+            total_forth_installment += s.installments[3].amount;
+            total_remaining += s.remaining_amount;
+            return s;
+          }),
+        total_installments,
+        total_first_installment,
+        total_second_installment,
+        total_third_installment,
+        total_forth_installment,
+        total_remaining,
+      });
     } else {
       setSearchInstitute("0");
+      setSearchedData(data);
     }
   };
 
   const handleSearchButton = (e) => {
     e.preventDefault();
     setLoading(true);
-    getAttendance(1, searchInstitute);
+    const reg = new RegExp(search1, "i");
+    let total_installments = 0;
+    let total_first_installment = 0;
+    let total_second_installment = 0;
+    let total_third_installment = 0;
+    let total_forth_installment = 0;
+    let total_remaining = 0;
+    if (searchState != "0") {
+      if (searchType == "1") {
+        setSearchedData({
+          ...data,
+          students: data.students
+            .filter(
+              (student) =>
+                student.state.id == searchState && student.name.match(reg)
+            )
+            .map((s) => {
+              total_installments += s.total_amount;
+              total_first_installment += s.installments[0].amount;
+              total_second_installment += s.installments[1].amount;
+              total_third_installment += s.installments[2].amount;
+              total_forth_installment += s.installments[3].amount;
+              total_remaining += s.remaining_amount;
+              return s;
+            }),
+          total_installments,
+          total_first_installment,
+          total_second_installment,
+          total_third_installment,
+          total_forth_installment,
+          total_remaining,
+        });
+      } else if (searchType == "2") {
+        setSearchedData({
+          ...data,
+          students: data.students
+            .filter(
+              (student) =>
+                (student.state.id == searchState &&
+                  student.installments[0].date <= search2 &&
+                  student.installments[0].date >= search1) ||
+                (student.installments[1].date <= search2 &&
+                  student.installments[1].date >= search1) ||
+                (student.installments[2].date <= search2 &&
+                  student.installments[2].date >= search1) ||
+                (student.installments[3].date <= search2 &&
+                  student.installments[3].date >= search1)
+            )
+            .map((s) => {
+              total_installments += s.total_amount;
+              total_first_installment += s.installments[0].amount;
+              total_second_installment += s.installments[1].amount;
+              total_third_installment += s.installments[2].amount;
+              total_forth_installment += s.installments[3].amount;
+              total_remaining += s.remaining_amount;
+              return s;
+            }),
+          total_installments,
+          total_first_installment,
+          total_second_installment,
+          total_third_installment,
+          total_forth_installment,
+          total_remaining,
+        });
+      } else if (searchType == "3") {
+        setSearchedData({
+          ...data,
+          students: data.students
+            .filter(
+              (student) =>
+                (student.state.id == searchState &&
+                  student.installments[0].invoice <= search2 &&
+                  student.installments[0].invoice >= search1) ||
+                (student.installments[1].invoice <= search2 &&
+                  student.installments[1].invoice >= search1) ||
+                (student.installments[2].invoice <= search2 &&
+                  student.installments[2].invoice >= search1) ||
+                (student.installments[3].invoice <= search2 &&
+                  student.installments[3].invoice >= search1)
+            )
+            .map((s) => {
+              total_installments += s.total_amount;
+              total_first_installment += s.installments[0].amount;
+              total_second_installment += s.installments[1].amount;
+              total_third_installment += s.installments[2].amount;
+              total_forth_installment += s.installments[3].amount;
+              total_remaining += s.remaining_amount;
+              return s;
+            }),
+          total_installments,
+          total_first_installment,
+          total_second_installment,
+          total_third_installment,
+          total_forth_installment,
+          total_remaining,
+        });
+      }
+    } else {
+      if (searchType == "1") {
+        setSearchedData({
+          ...data,
+          students: data.students
+            .filter((student) => student.name.match(reg))
+            .map((s) => {
+              total_installments += s.total_amount;
+              total_first_installment += s.installments[0].amount;
+              total_second_installment += s.installments[1].amount;
+              total_third_installment += s.installments[2].amount;
+              total_forth_installment += s.installments[3].amount;
+              total_remaining += s.remaining_amount;
+              return s;
+            }),
+          total_installments,
+          total_first_installment,
+          total_second_installment,
+          total_third_installment,
+          total_forth_installment,
+          total_remaining,
+        });
+      } else if (searchType == "2") {
+        setSearchedData({
+          ...data,
+          students: data.students
+            .filter(
+              (student) =>
+                (student.installments[0].date <= search2 &&
+                  student.installments[0].date >= search1) ||
+                (student.installments[1].date <= search2 &&
+                  student.installments[1].date >= search1) ||
+                (student.installments[2].date <= search2 &&
+                  student.installments[2].date >= search1) ||
+                (student.installments[3].date <= search2 &&
+                  student.installments[3].date >= search1)
+            )
+            .map((s) => {
+              total_installments += s.total_amount;
+              total_first_installment += s.installments[0].amount;
+              total_second_installment += s.installments[1].amount;
+              total_third_installment += s.installments[2].amount;
+              total_forth_installment += s.installments[3].amount;
+              total_remaining += s.remaining_amount;
+              return s;
+            }),
+          total_installments,
+          total_first_installment,
+          total_second_installment,
+          total_third_installment,
+          total_forth_installment,
+          total_remaining,
+        });
+      } else if (searchType == "3") {
+        setSearchedData({
+          ...data,
+          students: data.students
+            .filter(
+              (student) =>
+                (student.installments[0].invoice <= search2 &&
+                  student.installments[0].invoice >= search1) ||
+                (student.installments[1].invoice <= search2 &&
+                  student.installments[1].invoice >= search1) ||
+                (student.installments[2].invoice <= search2 &&
+                  student.installments[2].invoice >= search1) ||
+                (student.installments[3].invoice <= search2 &&
+                  student.installments[3].invoice >= search1)
+            )
+            .map((s) => {
+              total_installments += s.total_amount;
+              total_first_installment += s.installments[0].amount;
+              total_second_installment += s.installments[1].amount;
+              total_third_installment += s.installments[2].amount;
+              total_forth_installment += s.installments[3].amount;
+              total_remaining += s.remaining_amount;
+              return s;
+            }),
+          total_installments,
+          total_first_installment,
+          total_second_installment,
+          total_third_installment,
+          total_forth_installment,
+          total_remaining,
+        });
+      }
+    }
+    setLoading(false);
   };
+
+  const columns = [
+    { field: "id", headerName: "ت" },
+    { field: "name", headerName: "الاسم" },
+    { field: "school", headerName: "المدرسة" },
+    { field: "governorate_v", headerName: "المحافظة" },
+    { field: "institute_v", headerName: "المعهد" },
+    { field: "poster_v", headerName: "ملصق" },
+    { field: "code", headerName: "الكود" },
+    { field: "total_amount", headerName: "المبلغ الكلي" },
+    { field: "first_installment", headerName: "القسط الاول" },
+    { field: "second_installment", headerName: "القسط الثاني" },
+    { field: "third_installment", headerName: "القسط الثالث" },
+    { field: "forth_installment", headerName: "القسط الرابع" },
+    { field: "remaining_amount", headerName: "المبلغ المتبقي" },
+    { field: "notes", headerName: "الملاحظات" },
+    {
+      field: "delete",
+      headerName: "الاجراء",
+      sortable: false,
+      disableClickEventBubbling: true,
+      renderCell: (params) => {
+        return (
+          <button
+            className="btn btn-danger"
+            onClick={() => handleDeleteButton(params.id)}
+          >
+            حذف
+          </button>
+        );
+      },
+    },
+  ];
 
   const searchBar = () => {
     if (searchType == "0") {
@@ -136,7 +416,7 @@ function Reports({ sideBarShow }) {
     } else if (searchType == "2") {
       return (
         <Fragment>
-          <div className="col-5 offset-2 col-md-3 offset-md-0 order-0 order-md-2">
+          <div className="col-5 offset-2 col-md-3 offset-md-0 order-0 order-md-2 position-relative">
             <input
               type="date"
               className="form-control text"
@@ -145,12 +425,12 @@ function Reports({ sideBarShow }) {
             ></input>
           </div>
           <p
-            className="col-2 col-md-1 order-1 order-md-3 text-white"
+            className="col-2 col-md-1 order-1 order-md-3"
             style={{ fontSize: "20px" }}
           >
             من
           </p>
-          <div className="col-5 offset-5 col-md-3 offset-md-0 order-2 order-md-0">
+          <div className="col-5 offset-5 col-md-3 offset-md-0 order-2 order-md-0 position-relative">
             <input
               type="date"
               className="form-control text"
@@ -159,7 +439,7 @@ function Reports({ sideBarShow }) {
             ></input>
           </div>
           <p
-            className="col-2 col-md-1 order-3 order-md-1 text-white"
+            className="col-2 col-md-1 order-3 order-md-1"
             style={{ fontSize: "20px" }}
           >
             الى
@@ -171,28 +451,28 @@ function Reports({ sideBarShow }) {
         <Fragment>
           <div className="col-5 offset-2 col-md-3 offset-md-0 order-0 order-md-2">
             <input
-              type="time"
+              type="number"
               className="form-control text"
               id="searchDate"
               onChange={handleSearch1Change}
             ></input>
           </div>
           <p
-            className="col-2 col-md-1 order-1 order-md-3 text-white"
+            className="col-2 col-md-1 order-1 order-md-3"
             style={{ fontSize: "20px" }}
           >
             من
           </p>
           <div className="col-5 offset-5 col-md-3 offset-md-0 order-2 order-md-0">
             <input
-              type="time"
+              type="number"
               className="form-control text"
               id="searchDate"
               onChange={handleSearch2Change}
             ></input>
           </div>
           <p
-            className="col-2 col-md-1 order-3 order-md-1 text-white"
+            className="col-2 col-md-1 order-3 order-md-1"
             style={{ fontSize: "20px" }}
           >
             الى
@@ -263,21 +543,169 @@ function Reports({ sideBarShow }) {
                 </div>
                 <div className="col-1 pt-1">
                   <select
-                    id="institute"
-                    onChange={handleInstituteChange}
+                    id="state"
+                    onChange={handleStateChange}
                     className="form-select"
                     dir="rtl"
-                    value={searchInstitute}
+                    value={searchState}
                   >
                     <option value="0" defaultValue>
                       المناطق
                     </option>
-                    {/* {institutes.map((institute) => (
-                      <option key={institute.id} value={institute.id}>
-                        {institute.name}
+                    {states.map((state) => (
+                      <option key={state.id} value={state.id}>
+                        {state.name}
                       </option>
-                    ))} */}
+                    ))}
                   </select>
+                </div>
+              </div>
+            </div>
+            <div className="col-12" dir="rtl">
+              <div className="row">
+                <div className="col-2">
+                  <div className="row">
+                    <label
+                      htmlFor="total_installments"
+                      className="form-label text-center col-6"
+                    >
+                      المجموع الكلي للأقساط
+                    </label>
+                    <div className="col-6 mt-1">
+                      <input
+                        id="total_installments"
+                        className="form-control"
+                        type="text"
+                        value={
+                          searchType != "0" || searchState != "0"
+                            ? searchedData.total_installments
+                            : data.total_installments
+                        }
+                        aria-label="readonly input example"
+                        disabled
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="col-2">
+                  <div className="row">
+                    <label
+                      htmlFor="total_first_installment"
+                      className="form-label text-center pt-2 col-6"
+                    >
+                      مجموع القسط الأول
+                    </label>
+                    <div className="col-6 mt-1">
+                      <input
+                        id="total_first_installment"
+                        className="form-control"
+                        type="text"
+                        value={
+                          searchType != "0" || searchState != "0"
+                            ? searchedData.total_first_installment
+                            : data.total_first_installment
+                        }
+                        aria-label="readonly input example"
+                        disabled
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="col-2">
+                  <div className="row">
+                    <label
+                      htmlFor="total_second_installment"
+                      className="form-label text-center col-6"
+                    >
+                      مجموع القسط الثاني
+                    </label>
+                    <div className="col-6 mt-1">
+                      <input
+                        id="total_second_installment"
+                        className="form-control"
+                        type="text"
+                        value={
+                          searchType != "0" || searchState != "0"
+                            ? searchedData.total_second_installment
+                            : data.total_second_installment
+                        }
+                        aria-label="readonly input example"
+                        disabled
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="col-2">
+                  <div className="row">
+                    <label
+                      htmlFor="total_third_installment"
+                      className="form-label text-center col-6"
+                    >
+                      مجموع القسط الثالث
+                    </label>
+                    <div className="col-6 mt-1">
+                      <input
+                        id="total_third_installment"
+                        className="form-control"
+                        type="text"
+                        value={
+                          searchType != "0" || searchState != "0"
+                            ? searchedData.total_third_installment
+                            : data.total_third_installment
+                        }
+                        aria-label="readonly input example"
+                        disabled
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="col-2">
+                  <div className="row">
+                    <label
+                      htmlFor="total_forth_installment"
+                      className="form-label text-center pt-2 col-6"
+                    >
+                      مجموع القسط الرابع
+                    </label>
+                    <div className="col-6 mt-1">
+                      <input
+                        id="total_forth_installment"
+                        className="form-control"
+                        type="text"
+                        value={
+                          searchType != "0" || searchState != "0"
+                            ? searchedData.total_forth_installment
+                            : data.total_forth_installment
+                        }
+                        aria-label="readonly input example"
+                        disabled
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="col-2">
+                  <div className="row">
+                    <label
+                      htmlFor="total_remaining"
+                      className="form-label text-center pt-2 col-6"
+                    >
+                      مجموع المتبقي
+                    </label>
+                    <div className="col-6 mt-1">
+                      <input
+                        id="total_remaining"
+                        className="form-control"
+                        type="text"
+                        value={
+                          searchType != "0" || searchState != "0"
+                            ? searchedData.total_remaining
+                            : data.total_remaining
+                        }
+                        aria-label="readonly input example"
+                        disabled
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -286,7 +714,11 @@ function Reports({ sideBarShow }) {
                 <Loading />
               ) : (
                 <DataGrid
-                  rows={rows}
+                  rows={
+                    searchType != "0" || searchState != "0"
+                      ? searchedData.students
+                      : data.students
+                  }
                   columns={columns}
                   pageSize={90}
                   rowsPerPageOptions={[5]}

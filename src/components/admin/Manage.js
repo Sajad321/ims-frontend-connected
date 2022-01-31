@@ -33,9 +33,9 @@ function CustomPagination() {
 
 const columns = [
   { field: "id", headerName: "ت", width: 20 },
-  { field: "name", headerName: "الاسم", width: 150 },
+  { field: "username", headerName: "الاسم", width: 150 },
   { field: "email", headerName: "البريد الالكتروني", width: 200 },
-  { field: "authority", headerName: "الصلاحية", flex: 1 },
+  { field: "authority_v", headerName: "الصلاحية", flex: 1 },
   {
     field: "delete",
     headerName: "الاجراء",
@@ -47,20 +47,21 @@ const columns = [
   },
 ];
 
-const rows = [
-  { id: 1, name: "Snow", email: "Jon", code: 35 },
-  { id: 2, name: "Lannister", email: "Cersei", code: 42 },
-  { id: 3, name: "Lannister", email: "Jaime", code: 45 },
-  { id: 4, name: "Stark", email: "Arya", code: 16 },
-  { id: 5, name: "Targaryen", email: "Daenerys", code: null },
-  { id: 6, name: "Melisandre", email: null, code: 150 },
-  { id: 7, name: "Clifford", email: "Ferrara", code: 44 },
-  { id: 8, name: "Frances", email: "Rossini", code: 36 },
-  { id: 9, name: "Roxie", email: "Harvey", code: 65 },
-];
 function Manage({ sideBarShow, edit }) {
   const [data, setData] = useState({
-    users: [],
+    users: [
+      {
+        id: 1,
+        username: "krvhrv",
+        authority: [
+          {
+            authority_id: 1,
+            state: "الكويت",
+            state_id: 1,
+          },
+        ],
+      },
+    ],
     total_users: "",
     page: "",
   });
@@ -73,7 +74,7 @@ function Manage({ sideBarShow, edit }) {
   const [searchType, setSearchType] = useState("0");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-
+  console.log(data);
   const getUsers = async () => {
     try {
       const response = await fetch(`${apiUrl}/users`, {
@@ -84,6 +85,16 @@ function Manage({ sideBarShow, edit }) {
       });
 
       const responseData = await response.json();
+      responseData.users.map(
+        (user) =>
+          (user["authority_v"] = [
+            user.authority
+              .map((s) => {
+                return s.state;
+              })
+              .toString(),
+          ])
+      );
       setData({
         users: responseData.users,
       });
@@ -205,7 +216,7 @@ function Manage({ sideBarShow, edit }) {
                   <Loading />
                 ) : (
                   <DataGrid
-                    rows={rows}
+                    rows={data.users}
                     columns={columns}
                     pageSize={90}
                     rowsPerPageOptions={[5]}
