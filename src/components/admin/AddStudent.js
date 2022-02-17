@@ -1,38 +1,94 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useState, useEffect, Fragment } from "react";
 import { toast } from "react-toastify";
+import SavingModal from "../common/SavingModal";
+import DatePicker from "react-datepicker";
+
+import "react-datepicker/dist/react-datepicker.css";
 const apiUrl = process.env.API_URL;
 
-function AddStudent({ page, dataToChange, sideBarShow }) {
+function AddStudent({
+  page,
+  dataToChange,
+  sideBarShow,
+  selectedState,
+  handleStateStudentsButton,
+  setShowSync,
+}) {
+  function pad(x, width = 2, char = "0") {
+    return String(x).padStart(width, char);
+  }
+  function toLocalISOString(dt) {
+    const offset = dt.getTimezoneOffset();
+    const absOffset = Math.abs(offset);
+    const offHours = Math.floor(absOffset / 60);
+    const offStr = pad(offHours) + ":" + pad(absOffset - offHours * 60);
+    return [
+      String(dt.getFullYear()),
+      "-",
+      pad(dt.getMonth() + 1),
+      "-",
+      pad(dt.getDate()),
+      "T",
+      pad(dt.getHours()),
+      ":",
+      pad(dt.getMinutes()),
+      ":",
+      pad(dt.getSeconds()),
+      ".",
+      dt.getMilliseconds(),
+      offset <= 0 ? "+" : "-",
+      offStr,
+    ].join("");
+  }
+
+  const [date, setDate] = useState(toLocalISOString(new Date()).slice(0, 10));
+  const [savingModal, setSavingModal] = useState({
+    show: false,
+  });
   const [dataToSend, setDataToSend] = useState({
     id: "",
     name: "",
     school: "",
-    governorate_id: "",
-    branch_id: "",
-    institute: "",
-    poster_id: "",
-    code: "",
-    confirmatory_code: "",
+    state_id: selectedState.id,
+    governorate_id: 1,
+    branch_id: 1,
+    institute_id: "",
+    poster_id: null,
+    code_1: null,
+    code_2: null,
     telegram_username: "",
-    first_phone: "",
-    second_phone: "",
+    first_phone: null,
+    second_phone: null,
     total_amount: "",
     installments: [
       {
-        id: 1,
-        date: null,
+        install_id: 1,
+        date: date,
         amount: "",
-        invoice: "",
-        installment_id: 1,
+        invoice: null,
         installment_name: "القسط الاول",
       },
       {
-        id: 2,
-        date: null,
+        install_id: 2,
+        date: date,
         amount: "",
-        invoice: "",
-        installment_id: 2,
+        invoice: null,
         installment_name: "القسط الثاني",
+      },
+      {
+        install_id: 3,
+        date: date,
+        amount: "",
+        invoice: null,
+        installment_name: "القسط الثالث",
+      },
+      {
+        install_id: 4,
+        date: date,
+        amount: "",
+        invoice: null,
+        installment_name: "القسط الرابع",
       },
     ],
     remaining_amount: "",
@@ -40,9 +96,45 @@ function AddStudent({ page, dataToChange, sideBarShow }) {
   });
   const [saving, setSaving] = useState(false);
   const [governorates, setGovenorates] = useState([]);
+  const [institutes, setInstitutes] = useState([]);
   const [branches, setBranches] = useState([]);
   const [posters, setPosters] = useState([]);
+  const [students, setStudents] = useState([]);
+  const [searched, setSearched] = useState([]);
+  const [search, setSearch] = useState(false);
+  console.log(dataToSend);
+  const getStudents = async () => {
+    try {
+      const response = await fetch(`${apiUrl}/students`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer`,
+        },
+      });
+
+      const responseData = await response.json();
+      setStudents(responseData.students);
+      setSearched(responseData.students);
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
   useEffect(() => {
+    const getInstitutes = async () => {
+      try {
+        const response = await fetch(`${apiUrl}/institutes`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer`,
+          },
+        });
+
+        const responseData = await response.json();
+        setInstitutes(responseData.institutes);
+      } catch (error) {
+        console.log(error.message);
+      }
+    };
     const getGovenorates = async () => {
       try {
         const response = await fetch(`${apiUrl}/governorates`, {
@@ -90,13 +182,18 @@ function AddStudent({ page, dataToChange, sideBarShow }) {
     };
     getGovenorates();
     getBranches();
+    getInstitutes();
     getPosters();
+    getStudents();
     if (Object.keys(dataToChange).length != 0) {
       setDataToSend(dataToChange);
     }
   }, []);
-  const handleNameChange = (e) =>
+  const handleNameChange = (e) => {
     setDataToSend({ ...dataToSend, name: e.target.value });
+    const reg = new RegExp(e.target.value, "i");
+    setSearched(students.filter((student) => student.name.match(reg)));
+  };
   const handleSchoolChange = (e) => {
     setDataToSend({ ...dataToSend, school: e.target.value });
   };
@@ -104,10 +201,10 @@ function AddStudent({ page, dataToChange, sideBarShow }) {
     setDataToSend({ ...dataToSend, branch_id: e.target.value });
   };
   const handleGovernorateChange = (e) => {
-    setDataToSend({ ...dataToSend, governorate: e.target.value });
+    setDataToSend({ ...dataToSend, governorate_id: e.target.value });
   };
   const handleInstituteChange = (e) => {
-    setDataToSend({ ...dataToSend, institute: e.target.value });
+    setDataToSend({ ...dataToSend, institute_id: e.target.value });
   };
   const handleFirstPhoneChange = (e) =>
     setDataToSend({
@@ -122,10 +219,10 @@ function AddStudent({ page, dataToChange, sideBarShow }) {
   const handlePosterChange = (e) => {
     setDataToSend({ ...dataToSend, poster_id: e.target.value });
   };
-  const handleCodeChange = (e) =>
-    setDataToSend({ ...dataToSend, code: e.target.value });
-  const handleCodeCoChange = (e) =>
-    setDataToSend({ ...dataToSend, confirmatory_code: e.target.value });
+  const handleCode1Change = (e) =>
+    setDataToSend({ ...dataToSend, code_1: e.target.value });
+  const handleCode2Change = (e) =>
+    setDataToSend({ ...dataToSend, code_2: e.target.value });
   const handleTelegramChange = (e) =>
     setDataToSend({ ...dataToSend, telegram_username: e.target.value });
   const handleTotalAmountChange = (e) => {
@@ -152,8 +249,9 @@ function AddStudent({ page, dataToChange, sideBarShow }) {
     installments[index].amount = e.target.value;
     let total = dataToSend.total_amount;
     for (let i = 0; i < dataToSend.installments.length; i++) {
-      total -= e.target.value;
+      total -= dataToSend.installments[i].amount;
     }
+    total -= e.target.value;
     if (total < 0) {
       setDataToSend({
         ...dataToSend,
@@ -190,14 +288,20 @@ function AddStudent({ page, dataToChange, sideBarShow }) {
   const saveStudent = async () => {
     try {
       setSaving(true);
-      const response = await fetch(`${apiUrl}/students`, {
-        method: dataToSend.id != "" ? "PATCH" : "POST",
+      console.log(dataToSend);
+      const response = await fetch(
+        `${apiUrl}/students${dataToSend.id != "" ? `/` + dataToSend.id : ""}`,
+        {
+          method: dataToSend.id != "" ? "PATCH" : "POST",
+          headers: { "Content-Type": "application/json" },
 
-        body: dataToSend,
-      });
+          body: JSON.stringify(dataToSend),
+        }
+      );
       const responseData = await response.json();
 
       toast.success("تم حفظ الطالب");
+      setShowSync(true);
       page();
     } catch (error) {
       console.log(error.message);
@@ -209,9 +313,21 @@ function AddStudent({ page, dataToChange, sideBarShow }) {
     e.preventDefault();
     saveStudent();
   };
+  const [startDate, setStartDate] = useState(new Date());
   return (
     <section className="">
-      <div className="row padding-form m-0">
+      <div className="row pt-5 mt-4 m-0">
+        <SavingModal
+          show={savingModal.show}
+          onHide={() =>
+            setSavingModal({
+              ...savingModal,
+              show: false,
+            })
+          }
+          save={saveStudent}
+          page={handleStateStudentsButton}
+        />
         <div
           className={
             sideBarShow
@@ -220,10 +336,26 @@ function AddStudent({ page, dataToChange, sideBarShow }) {
           }
           id="main-view"
         >
-          <div className="row pt-md-3 pr-2 pl-2 mt-md-3 mb-5 text-white">
+          <div className="d-flex w-100" dir="rtl">
+            <div className="col-2">
+              <button
+                className="btn btn-secondary w-100"
+                onClick={() =>
+                  setSavingModal({
+                    ...savingModal,
+                    show: true,
+                  })
+                }
+              >
+                <FontAwesomeIcon icon="arrow-right" />
+              </button>
+            </div>
+            <h2 className="col-8 text-center">الطالب</h2>
+          </div>
+          <div className="row pt-md-3 pr-2 pl-2 mb-5">
             <div className="col-8 p-2 offset-3">
               <form onSubmit={handleSubmit}>
-                <div className="mb-3 row">
+                <div className="mb-3 row position-relative">
                   <div className="col-7 offset-1">
                     <input
                       id="name"
@@ -232,12 +364,30 @@ function AddStudent({ page, dataToChange, sideBarShow }) {
                       className="form-control text"
                       onChange={handleNameChange}
                       value={dataToSend.name}
+                      onFocus={() => setSearch(true)}
+                      onBlur={() => setSearch(false)}
                       required
                     ></input>
+                    {search ? (
+                      <div
+                        className="position-absolute ms-5 mt-2 pt-2 border-1 border-black border w-50 overflow-auto bg-white"
+                        style={{ height: "250px" }}
+                      >
+                        {searched.map((student) => {
+                          return (
+                            <p dir="rtl" className="pe-3">
+                              {student.name}
+                            </p>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      ""
+                    )}
                   </div>
                   <label
                     htmlFor="name"
-                    className="col-2 form-label text-center bg-danger p-2"
+                    className="col-2 form-label text-center p-2"
                   >
                     اسم الطالب/ة
                   </label>
@@ -252,11 +402,12 @@ function AddStudent({ page, dataToChange, sideBarShow }) {
                       onChange={handleSchoolChange}
                       className="form-control text"
                       value={dataToSend.school}
+                      required
                     ></input>
                   </div>
                   <label
                     htmlFor="school"
-                    className="col-2 form-label text-center bg-warning  p-2"
+                    className="col-2 form-label text-center p-2"
                   >
                     المدرسة
                   </label>
@@ -282,7 +433,7 @@ function AddStudent({ page, dataToChange, sideBarShow }) {
                   </div>
                   <label
                     htmlFor="branch"
-                    className="col-2 form-label text-center bg-success p-2"
+                    className="col-2 form-label text-center p-2"
                   >
                     الفرع
                   </label>
@@ -308,7 +459,7 @@ function AddStudent({ page, dataToChange, sideBarShow }) {
                   </div>
                   <label
                     htmlFor="governorate"
-                    className="col-2 form-label text-center bg-info p-2"
+                    className="col-2 form-label text-center p-2"
                   >
                     المحافظة
                   </label>
@@ -316,18 +467,25 @@ function AddStudent({ page, dataToChange, sideBarShow }) {
 
                 <div className="mb-3 row">
                   <div className="col-7 offset-1">
-                    <input
+                    <select
                       id="institute"
-                      type="text"
-                      placeholder="المعهد"
                       onChange={handleInstituteChange}
-                      className="form-control text"
-                      value={dataToSend.institute}
-                    ></input>
+                      className="form-select"
+                      dir="rtl"
+                      value={dataToSend.institute_id}
+                      required
+                    >
+                      <option selected>اختر</option>
+                      {institutes.map((institute) => (
+                        <option key={institute.id} value={institute.id}>
+                          {institute.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <label
                     htmlFor="institute"
-                    className="col-2 form-label text-center bg-secondary p-2"
+                    className="col-2 form-label text-center p-2"
                   >
                     المعهد
                   </label>
@@ -354,13 +512,14 @@ function AddStudent({ page, dataToChange, sideBarShow }) {
                           onChange={handleFirstPhoneChange}
                           className="form-control text"
                           value={dataToSend.first_phone}
+                          required
                         ></input>
                       </div>
                     </div>
                   </div>
                   <label
                     htmlFor="phone"
-                    className="col-2 form-label text-center bg-danger p-2"
+                    className="col-2 form-label text-center p-2"
                   >
                     رقم الهاتف
                   </label>
@@ -386,7 +545,7 @@ function AddStudent({ page, dataToChange, sideBarShow }) {
                   </div>
                   <label
                     htmlFor="poster"
-                    className="col-2 form-label text-center bg-dark p-2"
+                    className="col-2 form-label text-center p-2"
                   >
                     الملصق
                   </label>
@@ -399,27 +558,28 @@ function AddStudent({ page, dataToChange, sideBarShow }) {
                         <input
                           id="code"
                           type="text"
-                          placeholder="تأكيد الكود"
-                          onChange={handleCodeChange}
+                          placeholder="الكود الثاني"
+                          onChange={handleCode2Change}
                           className="form-control text"
-                          value={dataToSend.code}
+                          value={dataToSend.code_2}
                         ></input>
                       </div>
                       <div className="col-4">
                         <input
                           id="code"
                           type="text"
-                          placeholder="الكود"
-                          onChange={handleCodeCoChange}
+                          placeholder="الكود الاول"
+                          onChange={handleCode1Change}
                           className="form-control text"
-                          value={dataToSend.confirmatory_code}
+                          value={dataToSend.code_1}
+                          required
                         ></input>
                       </div>
                     </div>
                   </div>
                   <label
                     htmlFor="code"
-                    className="col-2 form-label text-center bg-primary p-2"
+                    className="col-2 form-label text-center p-2"
                   >
                     الكود
                   </label>
@@ -438,7 +598,7 @@ function AddStudent({ page, dataToChange, sideBarShow }) {
                   </div>
                   <label
                     htmlFor="telegram_username"
-                    className="col-2 form-label text-center bg-warning p-2"
+                    className="col-2 form-label text-center p-2"
                   >
                     المعرف
                   </label>
@@ -453,11 +613,12 @@ function AddStudent({ page, dataToChange, sideBarShow }) {
                       onChange={handleTotalAmountChange}
                       className="form-control text"
                       value={dataToSend.total_amount}
+                      required
                     ></input>
                   </div>
                   <label
                     htmlFor="total_amount"
-                    className="col-2 form-label text-center bg-info p-2"
+                    className="col-2 form-label text-center p-2"
                   >
                     المبلغ الكلي
                   </label>
@@ -465,23 +626,24 @@ function AddStudent({ page, dataToChange, sideBarShow }) {
 
                 {dataToSend.installments.map((installment, index) => {
                   return (
-                    <div className="mb-3 row" key={installment.id}>
+                    <div className="mb-3 row" key={installment.install_id}>
                       <div className="col-7 offset-1">
                         <div className="row">
                           <div className="col-4 position-relative">
-                            <input
+                            <DatePicker
                               id={`${installment.installment_name}-date`}
-                              type="date"
-                              onChange={(e) =>
-                                handleInstallmentDateChange(e, index)
-                              }
+                              selected={startDate}
                               className="form-control text"
-                              value={dataToSend.date}
-                            ></input>
+                              onChange={(date) =>
+                                handleInstallmentDateChange(date, index)
+                              }
+                              dateFormat="yyyy/MM/dd"
+                              value={installment.date}
+                            />
                           </div>
                           <label
                             htmlFor={`${installment.installment_name}-date`}
-                            className="col-2 form-label text-center bg-success p-2"
+                            className="col-2 form-label text-center p-2"
                           >
                             التاريخ
                           </label>
@@ -499,7 +661,7 @@ function AddStudent({ page, dataToChange, sideBarShow }) {
                           </div>
                           <label
                             htmlFor={`${installment.installment_name}-invoice`}
-                            className="col-2 form-label text-center bg-success p-2"
+                            className="col-2 form-label text-center p-2"
                           >
                             رقم الوصل
                           </label>
@@ -519,7 +681,7 @@ function AddStudent({ page, dataToChange, sideBarShow }) {
                       </div>
                       <label
                         htmlFor={installment.installment_name}
-                        className="col-2 form-label text-center bg-success p-2"
+                        className="col-2 form-label text-center p-2"
                       >
                         {installment.installment_name}
                       </label>
@@ -540,7 +702,7 @@ function AddStudent({ page, dataToChange, sideBarShow }) {
                   </div>
                   <label
                     htmlFor="remaining_amount"
-                    className="col-2 form-label text-center bg-secondary p-2"
+                    className="col-2 form-label text-center p-2"
                   >
                     المبلغ المتبقي
                   </label>
@@ -560,7 +722,7 @@ function AddStudent({ page, dataToChange, sideBarShow }) {
                   </div>
                   <label
                     htmlFor="note"
-                    className="col-2 form-label text-center bg-danger p-2"
+                    className="col-2 form-label text-center p-2"
                   >
                     الملاحظات
                   </label>
@@ -568,7 +730,10 @@ function AddStudent({ page, dataToChange, sideBarShow }) {
 
                 <div className="mb-3 row">
                   <div className="col-2 offset-3 mt-3">
-                    <button className="btn btn-danger btn-block w-100">
+                    <button
+                      className="btn btn-danger btn-block w-100"
+                      onClick={page}
+                    >
                       الغاء
                     </button>
                   </div>
@@ -578,7 +743,7 @@ function AddStudent({ page, dataToChange, sideBarShow }) {
                         type="submit"
                         className="btn btn-success btn-block w-100"
                       >
-                        حفظ الطالب
+                        {dataToSend.id != "" ? "تعديل" : "حفظ"} الطالب
                       </button>
                     ) : (
                       <button

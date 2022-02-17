@@ -3,84 +3,28 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { toast } from "react-toastify";
 import Loading from "../common/Loading";
 import ReactHTMLTableToExcel from "react-html-table-to-excel";
-import Pagination from "@mui/material/Pagination";
-import TablePagination from "@mui/material/TablePagination";
-import {
-  DataGrid,
-  gridPageCountSelector,
-  gridPageSelector,
-  useGridApiContext,
-  useGridSelector,
-} from "@mui/x-data-grid";
+import InfiniteScroll from "react-infinite-scroll-component";
+import ConfirmModal from "../common/ConfirmModal";
 
 const apiUrl = process.env.API_URL;
 
-function CustomPagination() {
-  const apiRef = useGridApiContext();
-  const page = useGridSelector(apiRef, gridPageSelector);
-  const pageCount = useGridSelector(apiRef, gridPageCountSelector);
-
-  return (
-    <Pagination
-      color="primary"
-      count={pageCount}
-      page={page + 1}
-      dir="ltr"
-      onChange={(event, value) => apiRef.current.setPage(value - 1)}
-    />
-  );
-}
-
-function Students({ sideBarShow, selectedState, add, edit }) {
+function Students({ sideBarShow, selectedState, add, edit, setShowSync }) {
+  const [confirmModal, setConfirmModal] = useState({
+    show: false,
+    id: "",
+  });
   const [data, setData] = useState({
     students: [],
     total_students: "",
-    page: "",
+    page: 1,
   });
   const [searchedData, setSearchedData] = useState({
     students: [],
     total_students: "",
-    page: "",
+    page: 1,
   });
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-
-  const columns = [
-    { field: "id", headerName: "ت" },
-    { field: "name", headerName: "الاسم" },
-    { field: "school", headerName: "المدرسة" },
-    { field: "governorate_v", headerName: "المحافظة" },
-    { field: "branch_v", headerName: "الفرع" },
-    { field: "institute_v", headerName: "المعهد" },
-    { field: "first_phone", headerName: "رقم الهاتف الاول", flex: 1 },
-    { field: "second_phone", headerName: "رقم الهاتف الثاني", flex: 1 },
-    { field: "poster_v", headerName: "ملصق" },
-    { field: "telegram_username", headerName: "المعرف" },
-    { field: "code", headerName: "الكود" },
-    { field: "total_amount", headerName: "المبلغ الكلي" },
-    { field: "first_installment", headerName: "القسط الاول" },
-    { field: "second_installment", headerName: "القسط الثاني" },
-    { field: "third_installment", headerName: "القسط الثالث" },
-    { field: "forth_installment", headerName: "القسط الرابع" },
-    { field: "remaining_amount", headerName: "المبلغ المتبقي" },
-    { field: "notes", headerName: "الملاحظات" },
-    {
-      field: "delete",
-      headerName: "الاجراء",
-      sortable: false,
-      disableClickEventBubbling: true,
-      renderCell: (params) => {
-        return (
-          <button
-            className="btn btn-danger"
-            onClick={() => handleDeleteButton(params.id)}
-          >
-            حذف
-          </button>
-        );
-      },
-    },
-  ];
 
   const getStudents = async () => {
     try {
@@ -94,10 +38,23 @@ function Students({ sideBarShow, selectedState, add, edit }) {
       const responseData = await response.json();
 
       responseData.students.map((s) => {
-        s["governorate_v"] = s.governorate.name;
-        s["branch_v"] = s.branch.name;
-        s["institute_v"] = s.institute.name;
-        s["poster_v"] = s.poster.name;
+        if (s.governorate) {
+          s["governorate_id"] = s.governorate.id;
+          s["governorate_v"] = s.governorate.name;
+        }
+        if (s.branch) {
+          s["branch_id"] = s.branch.id;
+          s["branch_v"] = s.branch.name;
+        }
+        if (s.institute) {
+          s["institute_id"] = s.institute.id;
+          s["institute_v"] = s.institute.name;
+        }
+        if (s.poster) {
+          s["poster_id"] = s.poster.id;
+          s["poster_v"] = s.poster.name;
+        }
+        s["state_id"] = s.state.id;
         s["first_installment"] = s.installments[0].amount;
         s["second_installment"] = s.installments[1].amount;
         s["third_installment"] = s.installments[2].amount;
@@ -108,6 +65,7 @@ function Students({ sideBarShow, selectedState, add, edit }) {
         students: responseData.students.filter(
           (s) => s.state.id == selectedState.id
         ),
+        page: 1,
       });
       setSearchedData({
         students: responseData.students.filter(
@@ -138,15 +96,13 @@ function Students({ sideBarShow, selectedState, add, edit }) {
     setLoading(false);
   };
 
-  const handleEditButton = (student, photo) => {
-    edit({ ...student, photo });
+  const handleEditButton = (student) => {
+    edit({ ...student });
   };
 
   const handleDelete = (id) => {
-    let searchedIndex = [...searchedData.searchedStudents].findIndex(
-      (i) => i.id == id
-    );
-    let neeSerached = [...searchedData.searchedStudents];
+    let searchedIndex = [...searchedData.students].findIndex((i) => i.id == id);
+    let neeSerached = [...searchedData.students];
     neeSerached = neeSerached.filter((s, i) => i != searchedIndex);
     setSearchedData({ ...searchedData, students: neeSerached });
     let index = [...data.students].findIndex((i) => i.id == id);
@@ -170,12 +126,171 @@ function Students({ sideBarShow, selectedState, add, edit }) {
     };
     handleStudentDelete();
     handleDelete(id);
+    setShowSync(true);
     toast.success("تم حذف الطالب");
   };
 
+  const deleteStudent = async (id) => {
+    try {
+      const response = await fetch(`${apiUrl}/students/${id}`, {
+        method: "DELETE",
+      });
+      const responseData = await response.json();
+
+      toast.success("تم حذف الطالب");
+      getStudents();
+    } catch (error) {
+      console.log(error.message);
+      toast.error("فشل الحذف");
+    }
+  };
+  const render_table = () => {
+    let render_data = [];
+    if (search != "") {
+      render_data = searchedData.students
+        .slice(0, searchedData.page * 100)
+        .map((student, index) => {
+          return (
+            <tr
+              key={student.id}
+              className="font-weight-bold"
+              onClick={() => handleEditButton(student)}
+            >
+              <td className="">{index + 1}</td>
+              <td className="">{student.name}</td>
+              <td className="">{student.school}</td>
+              <td className="">{student.governorate_v}</td>
+              <td className="">{student.institute_v}</td>
+              <td className="">{student.branch_v}</td>
+              <td className="">{student.first_phone}</td>
+              <td className="">{student.second_phone}</td>
+              <td className="">{student.telegram_username}</td>
+              <td className="">{student.poster_v}</td>
+              <td className="">{student.code_1}</td>
+              <td className="">{student.code_2}</td>
+              <td className="">{student.total_amount}</td>
+              <td className="">{student.first_installment}</td>
+              <td className="">{student.second_installment}</td>
+              <td className="">{student.third_installment}</td>
+              <td className="">{student.forth_installment}</td>
+              <td className="">{student.remaining_amount}</td>
+              <td className="">{student.notes}</td>
+              <td className="">
+                <button
+                  className="btn btn-danger"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setConfirmModal({
+                      ...confirmModal,
+                      show: true,
+                      id: student.id,
+                    });
+                  }}
+                >
+                  حذف
+                </button>
+              </td>
+            </tr>
+          );
+        });
+    } else {
+      render_data = data.students
+        .slice(0, data.page * 100)
+        .map((student, index) => {
+          return (
+            <tr
+              key={student.id}
+              className="font-weight-bold"
+              onClick={() => handleEditButton(student)}
+            >
+              <td className="">{index + 1}</td>
+              <td className="">{student.name}</td>
+              <td className="">{student.school}</td>
+              <td className="">{student.governorate_v}</td>
+              <td className="">{student.institute_v}</td>
+              <td className="">{student.branch_v}</td>
+              <td className="">{student.first_phone}</td>
+              <td className="">{student.second_phone}</td>
+              <td className="">{student.telegram_username}</td>
+              <td className="">{student.poster_v}</td>
+              <td className="">{student.code_1}</td>
+              <td className="">{student.code_2}</td>
+              <td className="">{student.total_amount}</td>
+              <td className="">{student.first_installment}</td>
+              <td className="">{student.second_installment}</td>
+              <td className="">{student.third_installment}</td>
+              <td className="">{student.forth_installment}</td>
+              <td className="">{student.remaining_amount}</td>
+              <td className="">{student.notes}</td>
+              <td className="">
+                <button
+                  className="btn btn-danger"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setConfirmModal({
+                      ...confirmModal,
+                      show: true,
+                      id: student.id,
+                    });
+                  }}
+                >
+                  حذف
+                </button>
+              </td>
+            </tr>
+          );
+        });
+    }
+    return (
+      <table
+        className="table table-striped table-bordered table-hover text"
+        dir="rtl"
+        border="1"
+        id="print-table"
+      >
+        <thead className="thead-dark">
+          <tr className="">
+            <th className="">ت</th>
+            <th className="">الاسم</th>
+            <th className="">المدرسة</th>
+            <th className="">المحافظة</th>
+            <th className="">المعهد</th>
+            <th className="">الفرع</th>
+            <th className="">رقم الهاتف الاول</th>
+            <th className="">رقم الهاتف الثاني</th>
+            <th className="">المعرف</th>
+            <th className="">ملصق</th>
+            <th className="">الكود الاول</th>
+            <th className="">الكود الثاني</th>
+            <th className="">المبلغ الكلي</th>
+            <th className="">القسط الاول</th>
+            <th className="">القسط الثاني</th>
+            <th className="">القسط الثالث</th>
+            <th className="">القسط الرابع</th>
+            <th className="">المبلغ المتبقي</th>
+            <th className="">الملاحظات</th>
+            <th className="">الاجراء</th>
+          </tr>
+        </thead>
+        <tbody>{render_data}</tbody>
+      </table>
+    );
+  };
   return (
     <section className="">
       <div className="row pt-5 m-0">
+        <ConfirmModal
+          show={confirmModal.show}
+          onHide={() =>
+            setConfirmModal({
+              ...confirmModal,
+              show: false,
+              id: "",
+            })
+          }
+          confirm={handleDeleteButton}
+          id={confirmModal.id}
+        />
         <div
           className={
             sideBarShow
@@ -184,63 +299,85 @@ function Students({ sideBarShow, selectedState, add, edit }) {
           }
           id="main-view"
         >
-          <div className="row mt-2">
-            <div className="col-12 top-bg">
-              <h5 className="text-end">الطلاب</h5>
+          <div className="row mt-3">
+            <div className="col-12">
+              <h4 className="text-center">الطلاب</h4>
             </div>
           </div>
-          <div className="row pt-md-2 pr-2 pl-2 mt-md-3 mb-5">
-            <div className="col-12">
-              <div className="row mt-3">
-                <div className="col-8">
-                  <form onSubmit={handleSearchButton}>
-                    <div className="form-group row mt-1">
-                      <div className="col-2 text">
-                        <button
-                          type="submit"
-                          className="btn btn-secondary btn-sm mt-1"
-                        >
-                          ابحث
-                        </button>
-                      </div>
-                      <div className="col-7">
-                        <input
-                          type="text"
-                          className="form-control text"
-                          id="searchStudent"
-                          onChange={handleSearchChange}
-                          placeholder="ابحث"
-                        ></input>
-                      </div>
-                    </div>
-                  </form>
+          <div className="row pr-2 pl-2 mb-5">
+            <div className="col-12 mb-2">
+              <form onSubmit={handleSearchButton}>
+                <div className="form-group row justify-content-center m-1 ">
+                  <div className="col-1 text">
+                    <button className="btn btn-primary w-100" onClick={add}>
+                      اضافة
+                    </button>
+                  </div>
+                  <div className="col-1 text">
+                    <button type="submit" className="btn btn-secondary">
+                      ابحث
+                    </button>
+                  </div>
+                  <div className="col-5">
+                    <input
+                      type="text"
+                      className="form-control text"
+                      id="searchStudent"
+                      onChange={handleSearchChange}
+                      placeholder="ابحث"
+                    ></input>
+                  </div>
                 </div>
-                <div className="col-1 offset-3 ">
-                  <button className="btn btn-primary m-2" onClick={add}>
-                    اضافة
-                  </button>
-                </div>
-              </div>
+              </form>
             </div>
 
             <div className="col-12" dir="rtl">
-              <div className="row m-0">
-                {loading ? (
-                  <Loading />
-                ) : (
-                  <DataGrid
-                    rows={search != "" ? searchedData.students : data.students}
-                    columns={columns}
-                    pageSize={90}
-                    rowsPerPageOptions={[5]}
-                    autoHeight={true}
-                    disableColumnMenu={true}
-                    disableSelectionOnClick={true}
-                    disableExtendRowFullWidth={true}
-                    components={{ Pagination: CustomPagination }}
-                  />
-                )}
-              </div>
+              {loading ? (
+                <Loading />
+              ) : (
+                <InfiniteScroll
+                  dataLength={
+                    search != "" ? searchedData.page * 100 : data.page * 100
+                  } //This is important field to render the next data
+                  next={() =>
+                    search != ""
+                      ? setSearchedData({
+                          ...searchedData,
+                          page: searchedData.page + 1,
+                        })
+                      : setData({ ...data, page: data.page + 1 })
+                  }
+                  hasMore={
+                    search != ""
+                      ? searchedData.students.slice(0, searchedData.page * 100)
+                          .length != searchedData.students.length
+                      : data.students.slice(0, data.page * 100).length !=
+                        data.students.length
+                  }
+                  loader={<Loading />}
+                  endMessage={
+                    <p className="pb-3 pt-3 text-center text-white">
+                      <b>هذه جميع النتائج</b>
+                    </p>
+                  }
+                  // below props only if you need pull down functionality
+                  // refreshFunction={this.refresh}
+                  // pullDownToRefresh
+                  // pullDownToRefreshThreshold={50}
+                  // pullDownToRefreshContent={
+                  //   <h3 style={{ textAlign: "center" }}>
+                  //     &#8595; Pull down to refresh
+                  //   </h3>
+                  // }
+                  // releaseToRefreshContent={
+                  //   <h3 style={{ textAlign: "center" }}>
+                  //     &#8593; Release to refresh
+                  //   </h3>
+                  // }
+                >
+                  <div className="table-responsive">{render_table()}</div>
+                </InfiniteScroll>
+              )}
             </div>
           </div>
         </div>

@@ -38,7 +38,7 @@ export default function Login({ setToken }) {
   };
 
   return (
-    <div className="d-flex justify-content-center align-items-center main pb-5 text-white">
+    <div className="d-flex justify-content-center align-items-center main pb-5">
       <form onSubmit={handleSubmit} className="w-50" dir="rtl">
         <h3 className="text-center mb-3">تسجيل الدخول</h3>
 

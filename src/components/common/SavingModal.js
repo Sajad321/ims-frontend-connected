@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Button } from "react-bootstrap";
 
-export default function ConfirmModal(props) {
+export default function SavingModal(props) {
   return (
     <Modal
       show={props.show}
@@ -25,22 +25,34 @@ export default function ConfirmModal(props) {
         <div className="">
           <Button
             onClick={() => {
+              props.save();
+              props.page();
               props.onHide();
             }}
-            className="modal-add-nav"
+            className="btn btn-success"
           >
-            لا
+            حفظ التغييرات
           </Button>
         </div>
         <div className="">
           <Button
             onClick={() => {
-              props.confirm(props.id);
+              props.page();
               props.onHide();
             }}
-            className="modal-add-nav"
+            className="btn btn-danger"
           >
-            نعم
+            عدم الحفظ
+          </Button>
+        </div>
+        <div className="">
+          <Button
+            onClick={() => {
+              props.onHide();
+            }}
+            className="btn btn-secondary"
+          >
+            البقاء
           </Button>
         </div>
       </Modal.Footer>

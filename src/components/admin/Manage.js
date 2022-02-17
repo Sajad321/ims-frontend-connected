@@ -3,51 +3,13 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { toast } from "react-toastify";
 import Loading from "../common/Loading";
 import ReactHTMLTableToExcel from "react-html-table-to-excel";
-import Pagination from "@mui/material/Pagination";
-import {
-  DataGrid,
-  gridPageCountSelector,
-  gridPageSelector,
-  useGridApiContext,
-  useGridSelector,
-} from "@mui/x-data-grid";
 import { AddUserModal } from "../common/Modals";
+import ConfirmModal from "../common/ConfirmModal";
+import InfiniteScroll from "react-infinite-scroll-component";
 
 const apiUrl = process.env.API_URL;
 
-function CustomPagination() {
-  const apiRef = useGridApiContext();
-  const page = useGridSelector(apiRef, gridPageSelector);
-  const pageCount = useGridSelector(apiRef, gridPageCountSelector);
-
-  return (
-    <Pagination
-      color="primary"
-      count={pageCount}
-      page={page + 1}
-      dir="ltr"
-      onChange={(event, value) => apiRef.current.setPage(value - 1)}
-    />
-  );
-}
-
-const columns = [
-  { field: "id", headerName: "ت", width: 20 },
-  { field: "name", headerName: "الاسم", width: 150 },
-  { field: "username", headerName: "البريد الالكتروني", width: 200 },
-  { field: "authority_v", headerName: "الصلاحية", flex: 1 },
-  {
-    field: "delete",
-    headerName: "الاجراء",
-    sortable: false,
-    disableClickEventBubbling: true,
-    renderCell: (params) => {
-      return <button className="btn btn-danger">حذف</button>;
-    },
-  },
-];
-
-function Manage({ sideBarShow, edit }) {
+function Manage({ sideBarShow, edit, states, setShowSync }) {
   const [data, setData] = useState({
     users: [
       {
@@ -56,8 +18,8 @@ function Manage({ sideBarShow, edit }) {
         authority: [
           {
             authority_id: 1,
-            state: "الكويت",
-            state_id: 1,
+            name: "الكويت",
+            id: 1,
           },
         ],
       },
@@ -70,10 +32,25 @@ function Manage({ sideBarShow, edit }) {
     total_users: "",
     page: "",
   });
-  const [addUserModalShow, setAddUserModalShow] = useState(false);
+  const [addUserModal, setAddUserModal] = useState({
+    show: false,
+    user: {
+      id: "",
+      name: "",
+      username: "",
+      authority: [],
+      password: "",
+      super: 0,
+    },
+  });
+  const [confirmModal, setConfirmModal] = useState({
+    show: false,
+    id: "",
+  });
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
+  console.log(data);
   const getUsers = async () => {
     try {
       const response = await fetch(`${apiUrl}/users`, {
@@ -84,21 +61,23 @@ function Manage({ sideBarShow, edit }) {
       });
 
       const responseData = await response.json();
-      responseData.users.map(
-        (user) =>
-          (user["authority_v"] = [
-            user.authority
-              .map((s) => {
-                return s.state;
-              })
-              .toString(),
-          ])
-      );
+      responseData.users.map((user) => {
+        user["authority_v"] = [
+          user.authority
+            .map((s) => {
+              return s.name;
+            })
+            .toString(),
+        ];
+        user["password"] = "";
+      });
       setData({
         users: responseData.users,
+        page: 1,
       });
       setSearchedData({
         users: responseData.users,
+        page: 1,
       });
       setLoading(false);
     } catch (error) {
@@ -124,45 +103,154 @@ function Manage({ sideBarShow, edit }) {
     setLoading(false);
   };
 
-  const handleEditButton = (student, photo) => {
-    edit({ ...student, photo });
-  };
-  const handleDelete = (id) => {
-    let searchedIndex = [...searchedStudents].findIndex((i) => i.id == id);
-    let neeSerached = [...searchedStudents];
-    neeSerached = neeSerached.filter((s, i) => i != searchedIndex);
-    setSearchedData({ ...searchedData, students: neeSerached });
-    let index = [...students].findIndex((i) => i.id == id);
-    let nee = [...students];
-    nee = nee.filter((s, i) => i != index);
-    setData({ ...data, students: nee });
-  };
-  const handleDeleteButton = (index, id) => {
-    const handleStudentDelete = async () => {
-      try {
-        const response = await fetch(
-          `${apiUrl}/student?student_id=${Number(id)}`,
-          {
-            method: "DELETE",
-          }
-        );
+  const deleteUser = async (id) => {
+    try {
+      const response = await fetch(`${apiUrl}/users/${id}`, {
+        method: "DELETE",
+      });
+      const responseData = await response.json();
 
-        const responseData = await response.json();
-      } catch (error) {
-        console.log(error.message);
-        toast.warn("حصل خطأ");
-      }
-    };
-    handleStudentDelete();
-    handleDelete(id);
-    toast.success("تم حذف المستخدم");
+      toast.success("تم حذف المستخدم");
+      setShowSync(true);
+      getUsers();
+    } catch (error) {
+      console.log(error.message);
+      toast.error("فشل الحذف");
+    }
+  };
+
+  const render_table = () => {
+    let render_data = [];
+    if (search != "") {
+      render_data = searchedData.users
+        .slice(0, searchedData.page * 100)
+        .map((user, index) => {
+          return (
+            <tr
+              key={user.id}
+              className="font-weight-bold"
+              onClick={() =>
+                setAddUserModal({
+                  ...addUserModal,
+                  show: true,
+                  user: user,
+                })
+              }
+            >
+              <td className="">{index + 1}</td>
+              <td className="">{user.name}</td>
+              <td className="">{user.username}</td>
+              <td className="">{user.authority_v}</td>
+              <td className="">
+                <button
+                  className="btn btn-danger"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setConfirmModal({
+                      ...confirmModal,
+                      show: true,
+                      id: user.id,
+                    });
+                  }}
+                >
+                  حذف
+                </button>
+              </td>
+            </tr>
+          );
+        });
+    } else {
+      render_data = data.users.slice(0, data.page * 100).map((user, index) => {
+        return (
+          <tr
+            key={user.id}
+            className="font-weight-bold"
+            onClick={() =>
+              setAddUserModal({
+                ...addUserModal,
+                show: true,
+                user: user,
+              })
+            }
+          >
+            <td className="">{index + 1}</td>
+            <td className="">{user.name}</td>
+            <td className="">{user.username}</td>
+            <td className="">{user.authority_v}</td>
+            <td className="">
+              <button
+                className="btn btn-danger"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setConfirmModal({
+                    ...confirmModal,
+                    show: true,
+                    id: user.id,
+                  });
+                }}
+              >
+                حذف
+              </button>
+            </td>
+          </tr>
+        );
+      });
+    }
+    return (
+      <table
+        className="table table-striped table-bordered table-hover text"
+        dir="rtl"
+        border="1"
+        id="print-table"
+      >
+        <thead className="thead-dark">
+          <tr className="">
+            <th className="">ت</th>
+            <th className="">الاسم</th>
+            <th className="">البريد الالكتروني</th>
+            <th className="">الصلاحية</th>
+            <th className="">الاجراء</th>
+          </tr>
+        </thead>
+        <tbody>{render_data}</tbody>
+      </table>
+    );
   };
 
   return (
     <section className="">
       <AddUserModal
-        show={addUserModalShow}
-        onHide={() => setAddUserModalShow(false)}
+        show={addUserModal.show}
+        onHide={() =>
+          setAddUserModal({
+            ...addUserModal,
+            show: false,
+            user: {
+              id: "",
+              name: "",
+              username: "",
+              authority: [],
+              password: "",
+              super: 0,
+            },
+          })
+        }
+        getUsers={getUsers}
+        user={addUserModal.user}
+        states={states}
+        setShowSync={setShowSync}
+      />
+      <ConfirmModal
+        show={confirmModal.show}
+        onHide={() =>
+          setConfirmModal({
+            ...confirmModal,
+            show: false,
+            id: "",
+          })
+        }
+        confirm={deleteUser}
+        id={confirmModal.id}
       />
       <div className="row pt-5 m-0">
         <div
@@ -173,46 +261,52 @@ function Manage({ sideBarShow, edit }) {
           }
           id="main-view"
         >
-          <div className="row mt-2">
-            <div className="col-12 top-bg">
-              <h5 className="text-end">المستخدمين</h5>
+          <div className="row mt-3">
+            <div className="col-12">
+              <h4 className="text-center">المستخدمين</h4>
             </div>
           </div>
-          <div className="row pt-md-2 pr-2 pl-2 mt-md-3 mb-5">
-            <div className="col-12">
-              <div className="row mt-3">
-                <div className="col-8">
-                  <form onSubmit={handleSearchButton}>
-                    <div className="form-group row mt-1">
-                      <div className="col-2 text">
-                        <button
-                          type="submit"
-                          className="btn btn-secondary btn-sm mt-1"
-                        >
-                          ابحث
-                        </button>
-                      </div>
-                      <div className="col-7">
-                        <input
-                          type="text"
-                          className="form-control text"
-                          id="searchStudent"
-                          onChange={handleSearchChange}
-                          placeholder="ابحث"
-                        ></input>
-                      </div>
-                    </div>
-                  </form>
+          <div className="row pr-2 pl-2 mb-5">
+            <div className="col-12 mb-2">
+              <form onSubmit={handleSearchButton}>
+                <div className="form-group row justify-content-center m-1 ">
+                  <div className="col-1 text">
+                    <button
+                      className="btn btn-primary w-100"
+                      onClick={() =>
+                        setAddUserModal({
+                          ...addUserModal,
+                          show: true,
+                          user: {
+                            id: "",
+                            name: "",
+                            username: "",
+                            authority: [],
+                            password: "",
+                            super: 0,
+                          },
+                        })
+                      }
+                    >
+                      اضافة
+                    </button>
+                  </div>
+                  <div className="col-1 text">
+                    <button type="submit" className="btn btn-secondary">
+                      ابحث
+                    </button>
+                  </div>
+                  <div className="col-5">
+                    <input
+                      type="text"
+                      className="form-control text"
+                      id="searchStudent"
+                      onChange={handleSearchChange}
+                      placeholder="ابحث"
+                    ></input>
+                  </div>
                 </div>
-                <div className="col-1 offset-3 ">
-                  <button
-                    className="btn btn-primary m-2"
-                    onClick={() => setAddUserModalShow(true)}
-                  >
-                    اضافة
-                  </button>
-                </div>
-              </div>
+              </form>
             </div>
 
             <div className="col-12" dir="rtl">
@@ -220,17 +314,48 @@ function Manage({ sideBarShow, edit }) {
                 {loading ? (
                   <Loading />
                 ) : (
-                  <DataGrid
-                    rows={search != "" ? searchedData.users : data.users}
-                    columns={columns}
-                    pageSize={90}
-                    rowsPerPageOptions={[5]}
-                    autoHeight={true}
-                    disableColumnMenu={true}
-                    disableSelectionOnClick={true}
-                    disableExtendRowFullWidth={true}
-                    components={{ Pagination: CustomPagination }}
-                  />
+                  <InfiniteScroll
+                    dataLength={
+                      search != "" ? searchedData.page * 100 : data.page * 100
+                    } //This is important field to render the next data
+                    next={() =>
+                      search != ""
+                        ? setSearchedData({
+                            ...searchedData,
+                            page: searchedData.page + 1,
+                          })
+                        : setData({ ...data, page: data.page + 1 })
+                    }
+                    hasMore={
+                      search != ""
+                        ? searchedData.users.slice(0, searchedData.page * 100)
+                            .length != searchedData.users.length
+                        : data.users.slice(0, data.page * 100).length !=
+                          data.users.length
+                    }
+                    loader={<Loading />}
+                    endMessage={
+                      <p className="pb-3 pt-3 text-center text-white">
+                        <b>هذه جميع النتائج</b>
+                      </p>
+                    }
+                    // below props only if you need pull down functionality
+                    // refreshFunction={this.refresh}
+                    // pullDownToRefresh
+                    // pullDownToRefreshThreshold={50}
+                    // pullDownToRefreshContent={
+                    //   <h3 style={{ textAlign: "center" }}>
+                    //     &#8595; Pull down to refresh
+                    //   </h3>
+                    // }
+                    // releaseToRefreshContent={
+                    //   <h3 style={{ textAlign: "center" }}>
+                    //     &#8593; Release to refresh
+                    //   </h3>
+                    // }
+                  >
+                    <div className="table-responsive">{render_table()}</div>
+                  </InfiniteScroll>
                 )}
               </div>
             </div>

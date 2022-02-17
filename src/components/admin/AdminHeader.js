@@ -1,28 +1,12 @@
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-// import { AddModal, StudentsModal } from "../common/Modal";
 import { Dropdown } from "react-bootstrap";
-import SettingsModal from "./SettingsModal";
 import profile from "../../assets/svg/profile.png";
 
 function AdminHeader(props) {
-  const [addModalShow, setAddModalShow] = useState(false);
-  const [settingsModalShow, setSettingsModalShow] = useState(false);
   return (
     <nav className="navbar navbar-dark navbar-expand-md">
-      {/* <AddModal
-        show={addModalShow}
-        onHide={() => setAddModalShow(false)}
-        AddStudentButton={props.AddStudentButton}
-        AddInstituteButton={props.AddInstituteButton}
-        AddInstallmentButton={props.AddInstallmentButton}
-      /> */}
-      <SettingsModal
-        show={settingsModalShow}
-        onHide={() => setSettingsModalShow(false)}
-        logoutWithRedirect={props.logoutWithRedirect}
-      />
       <div className="row">
         <div className="width-others-wide fixed-top me-auto logo" id="top-bar">
           <div className="row justify-content-center pt-3">
@@ -42,7 +26,7 @@ function AdminHeader(props) {
                   </div>
                   <div className="nav-profile-text">
                     <p className="mb-1 text-black">
-                      <p>سجاد</p>
+                      <p>{JSON.parse(localStorage.getItem("token")).name}</p>
                     </p>
                   </div>
                 </Dropdown.Toggle>
@@ -54,7 +38,10 @@ function AdminHeader(props) {
                     <Dropdown.Item
                       className="dropdown-item d-flex align-items-center justify-content-between"
                       href="!#"
-                      onClick={(evt) => evt.preventDefault()}
+                      onClick={(evt) => {
+                        evt.preventDefault();
+                        props.logoutWithRedirect();
+                      }}
                     >
                       <span>
                         <p>Log Out</p>
@@ -93,24 +80,28 @@ function AdminHeader(props) {
                   </span>
                 </a>
                 <div className="nav_list">
-                  <a
-                    href="#"
-                    className={"nav_link " + props.Active.Manage}
-                    onClick={props.handleManageButton}
-                  >
-                    <FontAwesomeIcon
-                      icon="user-cog"
-                      className={"nav_logo-icon " + props.Active.Manage}
-                      color="white"
-                      size="2x"
-                    />
-                    <span
-                      className={"nav_name " + props.Active.Manage}
-                      id="nav-text"
+                  {JSON.parse(localStorage.getItem("token")).super == 1 ? (
+                    <a
+                      href="#"
+                      className={"nav_link " + props.Active.Manage}
+                      onClick={props.handleManageButton}
                     >
-                      الادارة
-                    </span>
-                  </a>
+                      <FontAwesomeIcon
+                        icon="user-cog"
+                        className={"nav_logo-icon " + props.Active.Manage}
+                        color="white"
+                        size="2x"
+                      />
+                      <span
+                        className={"nav_name " + props.Active.Manage}
+                        id="nav-text"
+                      >
+                        الادارة
+                      </span>
+                    </a>
+                  ) : (
+                    ""
+                  )}
                   <a
                     href="#"
                     className={"nav_link " + props.Active.States}
@@ -149,6 +140,21 @@ function AdminHeader(props) {
                   </a>
                 </div>
               </div>
+              {props.showSync ? (
+                <a className="nav_link_bottom" onClick={props.sync}>
+                  <FontAwesomeIcon
+                    icon="sync"
+                    className="nav_logo-icon"
+                    color="white"
+                    size="2x"
+                  />
+                  <span className="nav_name" id="nav-text">
+                    مزامنة
+                  </span>
+                </a>
+              ) : (
+                ""
+              )}
             </nav>
           </div>
         </div>

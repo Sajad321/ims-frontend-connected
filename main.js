@@ -8,7 +8,7 @@ const { get } = require("axios");
 const appEnv = require("./env.json");
 const apiUrl = appEnv.API_URL;
 
-let backend = path.join(process.cwd(), "py_dist/main.exe");
+let backend = path.join(process.cwd(), "resources/py_main.exe");
 var execfile = require("child_process").execFile;
 execfile(
   backend,
@@ -115,10 +115,10 @@ function createWindow() {
 
   // Don't show until we are ready and loaded
   mainWindow.once("ready-to-show", () => {
-    // loginWindow.show();
+    loginWindow.show();
 
-    mainWindow.show();
-    mainWindow.maximize();
+    // mainWindow.show();
+    // mainWindow.maximize();
 
     // Open the DevTools automatically if developing
     if (dev) {
@@ -132,20 +132,20 @@ function createWindow() {
       );
       // mainWindow.webContents.openDevTools();
     }
-    // ipcMain.on("login", () => {
-    //   mainWindow.hide();
-    //   loginWindow.show();
-    //   loginWindow.focus();
-    // });
-    // ipcMain.on("finished-login", () => {
-    //   loginWindow.hide();
-    //   mainWindow.reload();
-    //   mainWindow.webContents.once("did-finish-load", () => {
-    //     mainWindow.show();
-    //     mainWindow.maximize();
-    //     mainWindow.focus();
-    //   });
-    // });
+    ipcMain.on("login", () => {
+      mainWindow.hide();
+      loginWindow.show();
+      loginWindow.focus();
+    });
+    ipcMain.on("finished-login", () => {
+      loginWindow.hide();
+      mainWindow.reload();
+      mainWindow.webContents.once("did-finish-load", () => {
+        mainWindow.show();
+        mainWindow.maximize();
+        mainWindow.focus();
+      });
+    });
   });
   // Emitted when the window is closed.
   mainWindow.on("closed", function () {

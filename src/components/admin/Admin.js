@@ -6,6 +6,7 @@ import Reports from "./Reports";
 import StateStudents from "./StateStudents";
 import AddStudent from "./AddStudent";
 import Manage from "./Manage";
+import { toast } from "react-toastify";
 const apiUrl = process.env.API_URL;
 
 function Admin(props) {
@@ -49,7 +50,25 @@ function Admin(props) {
     total_states: "",
     states: [],
   });
-  const [selectedState, setSelecedState] = useState({});
+  const [selectedState, setSelectedState] = useState({});
+  const [showSync, setShowSync] = useState(true);
+  const goSync = async () => {
+    try {
+      const response = await fetch(`${apiUrl}/sync`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer`,
+        },
+      });
+
+      const responseData = await response.json();
+      setShowSync(false);
+      toast.success("تمت المزامنة بنجاح");
+    } catch (error) {
+      console.log(error.message);
+      toast.error("فشلت المزامنة");
+    }
+  };
   const getStates = async () => {
     try {
       const response = await fetch(`${apiUrl}/states`, {
@@ -60,11 +79,11 @@ function Admin(props) {
       });
 
       const responseData = await response.json();
-      // responseData.states.filter(
-      //   (state) =>
-      //     state.id in JSON.parse(localStorage.getItem("token")).authority
-      // );
-      // responseData.total_states = responseData.states.length;
+      responseData.states.filter(
+        (state) =>
+          state.id in JSON.parse(localStorage.getItem("token")).authority
+      );
+      responseData.total_states = responseData.states.length;
       setStates({
         ...states,
         states: responseData.states,
@@ -89,6 +108,8 @@ function Admin(props) {
         sideEvent={sideEvent}
         sideBarShow={sideBarShow}
         setSideBarShow={setSideBarShow}
+        goSync={goSync}
+        showSync={showSync}
       />
     );
   };
@@ -134,9 +155,11 @@ function Admin(props) {
         <States
           sideEvent={sideEvent}
           sideBarShow={sideBarShow}
+          getStates={getStates}
           data={states}
-          setSelecedState={setSelecedState}
+          setSelectedState={setSelectedState}
           handleStateStudentsButton={handleStateStudentsButton}
+          setShowSync={setShowSync}
         />
         <AdminFooter sideBarShow={sideBarShow} />
       </Fragment>
@@ -165,6 +188,8 @@ function Admin(props) {
           sideEvent={sideEvent}
           sideBarShow={sideBarShow}
           edit={handleEditStudentButton}
+          states={states.states}
+          setShowSync={setShowSync}
         />
         <AdminFooter sideBarShow={sideBarShow} />
       </Fragment>
@@ -181,6 +206,7 @@ function Admin(props) {
           selectedState={selectedState}
           add={handleAddStudentButton}
           edit={handleEditStudentButton}
+          setShowSync={setShowSync}
         />
         <AdminFooter sideBarShow={sideBarShow} />
       </Fragment>
@@ -194,7 +220,10 @@ function Admin(props) {
         <AddStudent
           page={handleStatesButton}
           dataToChange={dataToChange}
+          selectedState={selectedState}
           sideBarShow={sideBarShow}
+          handleStateStudentsButton={handleStateStudentsButton}
+          setShowSync={setShowSync}
         />
         <AdminFooter sideBarShow={sideBarShow} />
       </Fragment>

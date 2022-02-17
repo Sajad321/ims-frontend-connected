@@ -13,7 +13,7 @@ function AdminFooter({ sideBarShow }) {
       >
         <div className="row justify-content-center mt-3">
           <div className="col-auto">
-            <p className="text-center">
+            <p className="text-center arial">
               Copyright &copy; 2022 by BeSmarty inc.
             </p>
           </div>

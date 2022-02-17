@@ -1,3 +1,7 @@
+* {
+  font-family: "PNU Medium";
+}
+
 .bg {
   background-image: url("/src/assets/bg.jpg");
   height: 600px;
@@ -30,6 +34,11 @@
   transition: 0.5s;
   border-top: 1px solid #c8ced3;
 }
+
+.arial {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
 .main-view {
   transition: 0.5s;
   padding-left: 10px;
@@ -203,7 +212,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .main {
-  // background: #000000;
+  background: #fff;
   min-height: 100vh;
   height: 100%;
 }
@@ -217,7 +226,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .card-common {
-  background-color: #2eadd3;
+  background-color: #4cc100;
 }
 
 .top-bg {

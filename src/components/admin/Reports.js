@@ -5,30 +5,8 @@ import printJS from "print-js";
 import ConfirmModal from "../common/ConfirmModal";
 import Loading from "../common/Loading";
 import ReactHTMLTableToExcel from "react-html-table-to-excel";
-import Pagination from "@mui/material/Pagination";
-import {
-  DataGrid,
-  gridPageCountSelector,
-  gridPageSelector,
-  useGridApiContext,
-  useGridSelector,
-} from "@mui/x-data-grid";
+import InfiniteScroll from "react-infinite-scroll-component";
 
-function CustomPagination() {
-  const apiRef = useGridApiContext();
-  const page = useGridSelector(apiRef, gridPageSelector);
-  const pageCount = useGridSelector(apiRef, gridPageCountSelector);
-
-  return (
-    <Pagination
-      color="primary"
-      count={pageCount}
-      page={page + 1}
-      dir="ltr"
-      onChange={(event, value) => apiRef.current.setPage(value - 1)}
-    />
-  );
-}
 const apiUrl = process.env.API_URL;
 
 function Reports({ sideBarShow, states }) {
@@ -84,10 +62,18 @@ function Reports({ sideBarShow, states }) {
       let total_forth_installment = 0;
       let total_remaining = 0;
       responseData.students.map((s) => {
-        s["governorate_v"] = s.governorate.name;
-        s["branch_v"] = s.branch.name;
-        s["institute_v"] = s.institute.name;
-        s["poster_v"] = s.poster.name;
+        if (s.governorate) {
+          s["governorate_v"] = s.governorate.name;
+        }
+        if (s.branch) {
+          s["branch_v"] = s.branch.name;
+        }
+        if (s.institute) {
+          s["institute_v"] = s.institute.name;
+        }
+        if (s.poster) {
+          s["poster_v"] = s.poster.name;
+        }
         s["first_installment"] = s.installments[0].amount;
         s["second_installment"] = s.installments[1].amount;
         s["third_installment"] = s.installments[2].amount;
@@ -108,6 +94,7 @@ function Reports({ sideBarShow, states }) {
         total_third_installment,
         total_forth_installment,
         total_remaining,
+        page: 1,
       });
       setSearchedData({
         students: responseData.students,
@@ -117,6 +104,7 @@ function Reports({ sideBarShow, states }) {
         total_third_installment,
         total_forth_installment,
         total_remaining,
+        page: 1,
       });
       setLoading(false);
     } catch (error) {
@@ -127,6 +115,7 @@ function Reports({ sideBarShow, states }) {
   useEffect(() => {
     getStudents();
   }, []);
+
   const handleSearchTypeChange = (e) => {
     setSearchType(e.target.value);
   };
@@ -136,7 +125,7 @@ function Reports({ sideBarShow, states }) {
   const handleSearch2Change = (e) => {
     setSearch2(e.target.value);
   };
-  console.log(data, searchedData);
+
   const handleStateChange = (e) => {
     let total_installments = 0;
     let total_first_installment = 0;
@@ -165,9 +154,10 @@ function Reports({ sideBarShow, states }) {
         total_third_installment,
         total_forth_installment,
         total_remaining,
+        page: 1,
       });
     } else {
-      setSearchInstitute("0");
+      setSearchState("0");
       setSearchedData(data);
     }
   };
@@ -206,6 +196,7 @@ function Reports({ sideBarShow, states }) {
           total_third_installment,
           total_forth_installment,
           total_remaining,
+          page: 1,
         });
       } else if (searchType == "2") {
         setSearchedData({
@@ -238,6 +229,7 @@ function Reports({ sideBarShow, states }) {
           total_third_installment,
           total_forth_installment,
           total_remaining,
+          page: 1,
         });
       } else if (searchType == "3") {
         setSearchedData({
@@ -270,6 +262,7 @@ function Reports({ sideBarShow, states }) {
           total_third_installment,
           total_forth_installment,
           total_remaining,
+          page: 1,
         });
       }
     } else {
@@ -293,6 +286,7 @@ function Reports({ sideBarShow, states }) {
           total_third_installment,
           total_forth_installment,
           total_remaining,
+          page: 1,
         });
       } else if (searchType == "2") {
         setSearchedData({
@@ -324,6 +318,7 @@ function Reports({ sideBarShow, states }) {
           total_third_installment,
           total_forth_installment,
           total_remaining,
+          page: 1,
         });
       } else if (searchType == "3") {
         setSearchedData({
@@ -355,44 +350,12 @@ function Reports({ sideBarShow, states }) {
           total_third_installment,
           total_forth_installment,
           total_remaining,
+          page: 1,
         });
       }
     }
     setLoading(false);
   };
-
-  const columns = [
-    { field: "id", headerName: "ت" },
-    { field: "name", headerName: "الاسم" },
-    { field: "school", headerName: "المدرسة" },
-    { field: "governorate_v", headerName: "المحافظة" },
-    { field: "institute_v", headerName: "المعهد" },
-    { field: "poster_v", headerName: "ملصق" },
-    { field: "code", headerName: "الكود" },
-    { field: "total_amount", headerName: "المبلغ الكلي" },
-    { field: "first_installment", headerName: "القسط الاول" },
-    { field: "second_installment", headerName: "القسط الثاني" },
-    { field: "third_installment", headerName: "القسط الثالث" },
-    { field: "forth_installment", headerName: "القسط الرابع" },
-    { field: "remaining_amount", headerName: "المبلغ المتبقي" },
-    { field: "notes", headerName: "الملاحظات" },
-    {
-      field: "delete",
-      headerName: "الاجراء",
-      sortable: false,
-      disableClickEventBubbling: true,
-      renderCell: (params) => {
-        return (
-          <button
-            className="btn btn-danger"
-            onClick={() => handleDeleteButton(params.id)}
-          >
-            حذف
-          </button>
-        );
-      },
-    },
-  ];
 
   const searchBar = () => {
     if (searchType == "0") {
@@ -482,6 +445,88 @@ function Reports({ sideBarShow, states }) {
     }
   };
 
+  const render_table = () => {
+    let render_data = [];
+    if (searchType != "0" || searchState != "0") {
+      render_data = searchedData.students
+        .slice(0, searchedData.page * 100)
+        .map((student, index) => {
+          return (
+            <tr key={student.id} className="font-weight-bold">
+              <td className="">{index + 1}</td>
+              <td className="">{student.name}</td>
+              <td className="">{student.school}</td>
+              <td className="">{student.governorate_v}</td>
+              <td className="">{student.institute_v}</td>
+              <td className="">{student.poster_v}</td>
+              <td className="">{student.code_1}</td>
+              <td className="">{student.code_2}</td>
+              <td className="">{student.total_amount}</td>
+              <td className="">{student.first_installment}</td>
+              <td className="">{student.second_installment}</td>
+              <td className="">{student.third_installment}</td>
+              <td className="">{student.forth_installment}</td>
+              <td className="">{student.remaining_amount}</td>
+              <td className="">{student.notes}</td>
+            </tr>
+          );
+        });
+    } else {
+      render_data = data.students
+        .slice(0, data.page * 100)
+        .map((student, index) => {
+          return (
+            <tr key={student.id} className="font-weight-bold">
+              <td className="">{index + 1}</td>
+              <td className="">{student.name}</td>
+              <td className="">{student.school}</td>
+              <td className="">{student.governorate_v}</td>
+              <td className="">{student.institute_v}</td>
+              <td className="">{student.poster_v}</td>
+              <td className="">{student.code_1}</td>
+              <td className="">{student.code_2}</td>
+              <td className="">{student.total_amount}</td>
+              <td className="">{student.first_installment}</td>
+              <td className="">{student.second_installment}</td>
+              <td className="">{student.third_installment}</td>
+              <td className="">{student.forth_installment}</td>
+              <td className="">{student.remaining_amount}</td>
+              <td className="">{student.notes}</td>
+            </tr>
+          );
+        });
+    }
+    return (
+      <table
+        className="table table-striped table-bordered table-hover text"
+        dir="rtl"
+        border="1"
+        id="print-table"
+      >
+        <thead className="thead-dark">
+          <tr className="">
+            <th className="">ت</th>
+            <th className="">الاسم</th>
+            <th className="">المدرسة</th>
+            <th className="">المحافظة</th>
+            <th className="">المعهد</th>
+            <th className="">ملصق</th>
+            <th className="">الكود الاول</th>
+            <th className="">الكود الثاني</th>
+            <th className="">المبلغ الكلي</th>
+            <th className="">القسط الاول</th>
+            <th className="">القسط الثاني</th>
+            <th className="">القسط الثالث</th>
+            <th className="">القسط الرابع</th>
+            <th className="">المبلغ المتبقي</th>
+            <th className="">الملاحظات</th>
+          </tr>
+        </thead>
+        <tbody>{render_data}</tbody>
+      </table>
+    );
+  };
+
   return (
     <section className="">
       <div className="row pt-5 m-0">
@@ -494,21 +539,18 @@ function Reports({ sideBarShow, states }) {
           id="main-view"
         >
           <div className="row mt-3">
-            <div className="col-12 top-bg">
-              <h5 className="text-end">التقارير</h5>
+            <div className="col-12">
+              <h4 className="text-center">التقارير</h4>
             </div>
           </div>
-          <div className="row pt-md-3 pr-2 pl-2 mt-md-3 mb-5">
+          <div className="row pt-md-3 pr-2 pl-2 mb-5">
             <div className="col-12">
-              <div className="row mt-3">
+              <div className="row">
                 <div className="col-9">
                   <form onSubmit={handleSearchButton}>
-                    <div className="form-group row mt-1">
+                    <div className="form-group row">
                       <div className="col-2 text">
-                        <button
-                          type="submit"
-                          className="btn btn-secondary btn-sm mt-1"
-                        >
+                        <button type="submit" className="btn btn-secondary">
                           ابحث
                         </button>
                       </div>
@@ -531,17 +573,17 @@ function Reports({ sideBarShow, states }) {
                     </div>
                   </form>
                 </div>
-                <div className="col-1 pt-1">
+                <div className="col-1">
                   <ReactHTMLTableToExcel
                     id="test-table-xls-button"
                     className="btn btn-secondary"
                     table="print-table"
-                    filename="الحضور"
-                    sheet="الحضور"
+                    filename="الاقساط"
+                    sheet="الاقساط"
                     buttonText="طباعة"
                   />
                 </div>
-                <div className="col-1 pt-1">
+                <div className="col-1">
                   <select
                     id="state"
                     onChange={handleStateChange}
@@ -550,7 +592,7 @@ function Reports({ sideBarShow, states }) {
                     value={searchState}
                   >
                     <option value="0" defaultValue>
-                      المناطق
+                      كل المناطق
                     </option>
                     {states.map((state) => (
                       <option key={state.id} value={state.id}>
@@ -713,22 +755,50 @@ function Reports({ sideBarShow, states }) {
               {loading ? (
                 <Loading />
               ) : (
-                <DataGrid
-                  rows={
+                <InfiniteScroll
+                  dataLength={
                     searchType != "0" || searchState != "0"
-                      ? searchedData.students
-                      : data.students
+                      ? searchedData.page * 100
+                      : data.page * 100
+                  } //This is important field to render the next data
+                  next={() =>
+                    searchType != "0" || searchState != "0"
+                      ? setSearchedData({
+                          ...searchedData,
+                          page: searchedData.page + 1,
+                        })
+                      : setData({ ...data, page: data.page + 1 })
                   }
-                  columns={columns}
-                  pageSize={90}
-                  rowsPerPageOptions={[5]}
-                  autoPageSize={true}
-                  autoHeight={true}
-                  disableColumnMenu={true}
-                  disableSelectionOnClick={true}
-                  disableExtendRowFullWidth={true}
-                  components={{ Pagination: CustomPagination }}
-                />
+                  hasMore={
+                    searchType != "0" || searchState != "0"
+                      ? searchedData.students.slice(0, searchedData.page * 100)
+                          .length != searchedData.students.length
+                      : data.students.slice(0, data.page * 100).length !=
+                        data.students.length
+                  }
+                  loader={<Loading />}
+                  endMessage={
+                    <p className="pb-3 pt-3 text-center text-white">
+                      <b>هذه جميع النتائج</b>
+                    </p>
+                  }
+                  // below props only if you need pull down functionality
+                  // refreshFunction={this.refresh}
+                  // pullDownToRefresh
+                  // pullDownToRefreshThreshold={50}
+                  // pullDownToRefreshContent={
+                  //   <h3 style={{ textAlign: "center" }}>
+                  //     &#8595; Pull down to refresh
+                  //   </h3>
+                  // }
+                  // releaseToRefreshContent={
+                  //   <h3 style={{ textAlign: "center" }}>
+                  //     &#8593; Release to refresh
+                  //   </h3>
+                  // }
+                >
+                  <div className="table-responsive">{render_table()}</div>
+                </InfiniteScroll>
               )}
             </div>
           </div>

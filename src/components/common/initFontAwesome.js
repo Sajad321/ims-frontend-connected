@@ -21,6 +21,7 @@ import {
   faTimesCircle,
   faUserCog,
   faExclamationCircle,
+  faSync,
 } from "@fortawesome/free-solid-svg-icons";
 
 function initFontAwesome() {
@@ -45,6 +46,7 @@ function initFontAwesome() {
   library.add(faTimesCircle);
   library.add(faUserCog);
   library.add(faExclamationCircle);
+  library.add(faSync);
 }
 
 export default initFontAwesome;

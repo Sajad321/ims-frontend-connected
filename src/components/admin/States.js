@@ -1,23 +1,73 @@
 import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { AddStateModal } from "../common/Modals";
+import { toast } from "react-toastify";
+import ConfirmModal from "../common/ConfirmModal";
 const apiUrl = process.env.API_URL;
 
 function States({
   sideBarShow,
+  getStates,
   data,
-  state,
-  setSelecedState,
+  setSelectedState,
   handleStateStudentsButton,
+  setShowSync,
 }) {
-  const [addStateModalShow, setAddStateModalShow] = useState(false);
+  const [addStateModal, setAddStateModal] = useState({
+    show: false,
+    state: {
+      id: "",
+      name: "",
+    },
+  });
+  const [confirmModal, setConfirmModal] = useState({
+    show: false,
+    id: "",
+  });
 
+  const deleteState = async (id) => {
+    try {
+      const response = await fetch(`${apiUrl}/states/${id}`, {
+        method: "DELETE",
+      });
+      const responseData = await response.json();
+
+      toast.success("تم حذف المنطقة");
+      getStates();
+    } catch (error) {
+      console.log(error.message);
+      toast.error("فشل الحذف");
+    }
+  };
   return (
     <section className="">
       <AddStateModal
-        show={addStateModalShow}
-        onHide={() => setAddStateModalShow(false)}
-        state={state}
+        show={addStateModal.show}
+        onHide={() =>
+          setAddStateModal({
+            ...addStateModal,
+            show: false,
+            state: {
+              id: "",
+              name: "",
+            },
+          })
+        }
+        getStates={getStates}
+        state={addStateModal.state}
+        setShowSync={setShowSync}
+      />
+      <ConfirmModal
+        show={confirmModal.show}
+        onHide={() =>
+          setConfirmModal({
+            ...confirmModal,
+            show: false,
+            id: "",
+          })
+        }
+        confirm={deleteState}
+        id={confirmModal.id}
       />
       <div className="row pt-5 m-0" dir="rtl">
         <div
@@ -28,28 +78,36 @@ function States({
           }
           id="main-view"
         >
-          <div className="row mt-3">
-            <div className="col-12 top-bg">
-              <h5 className="">المناطق</h5>
-            </div>
-          </div>
-          <div className="row pe-2 ps-2 mb-5">
-            <div className="col-12 mt-3 mb-1">
+          <div className="d-flex w-100 mt-3" dir="ltr">
+            <div className="col-2 offset-1">
               <button
-                className="btn btn-info text-white"
-                onClick={() => setAddStateModalShow(true)}
+                className="btn btn-primary text-white"
+                onClick={() =>
+                  setAddStateModal({
+                    ...addStateModal,
+                    show: true,
+                    state: {
+                      id: "",
+                      name: "",
+                    },
+                  })
+                }
               >
                 اضافة منطقة
               </button>
             </div>
+            <h4 className="col-6 text-center">المناطق</h4>
+          </div>
 
+          <div className="row pe-2 ps-2 mb-5">
             {data.states.map((state) => {
               return (
                 <div key={state.id} className="col-sm-3 p-2">
                   <div
                     className="card card-common"
+                    style={{ border: 0 }}
                     onClick={() => {
-                      setSelecedState(state);
+                      setSelectedState(state);
                       handleStateStudentsButton();
                     }}
                   >
@@ -66,8 +124,34 @@ function States({
                       </div>
                     </div>
                     <div className="row m-0">
-                      <button className="col-6 btn btn-secondary">تعديل</button>
-                      <button className="col-6 btn btn-danger">حذف</button>
+                      <button
+                        className="col-6 btn btn-secondary"
+                        style={{ borderRadius: 0 }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setAddStateModal({
+                            ...addStateModal,
+                            show: true,
+                            state: state,
+                          });
+                        }}
+                      >
+                        تعديل
+                      </button>
+                      <button
+                        className="col-6 btn btn-danger"
+                        style={{ borderRadius: 0 }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setConfirmModal({
+                            ...confirmModal,
+                            show: true,
+                            id: state.id,
+                          });
+                        }}
+                      >
+                        حذف
+                      </button>
                     </div>
                   </div>
                 </div>
