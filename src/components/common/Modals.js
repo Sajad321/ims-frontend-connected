@@ -7,25 +7,14 @@ import { components } from "react-select";
 
 const apiUrl = process.env.API_URL;
 
-const colourOptions = [
-  { value: "ocean1", label: "كل الصلاحيات" },
-  { value: "blue", label: "Blue" },
-  { value: "purple", label: "Purple" },
-  { value: "red", label: "Red" },
-  { value: "orange", label: "Orange" },
-  { value: "yellow", label: "Yellow" },
-  { value: "green", label: "Green" },
-  { value: "forest", label: "Forest" },
-  { value: "slate", label: "Slate" },
-  { value: "silver", label: "Silver" },
-];
 export function AddStateModal(props) {
   const [dataToSend, setDataToSend] = useState({
     id: "",
     name: "",
+    users: null,
   });
   useEffect(() => {
-    setDataToSend(props.state);
+    setDataToSend({ ...props.state, users: props.selectedUsers });
   }, [props.show]);
 
   const handleNameChange = (e) => {
@@ -36,7 +25,6 @@ export function AddStateModal(props) {
   };
   const saveState = async () => {
     try {
-      console.log(dataToSend);
       const response = await fetch(
         `${apiUrl}/states${dataToSend.id != "" ? `/` + dataToSend.id : ""}`,
         {
@@ -47,9 +35,15 @@ export function AddStateModal(props) {
       );
       const responseData = await response.json();
 
+      console.log(responseData);
+      if (responseData.detail) {
+        throw new Error(responseData.status);
+      }
       toast.success("تم حفظ المنطقة");
       props.setShowSync(true);
       props.getStates();
+      props.getUsers();
+      props.onHide();
     } catch (error) {
       console.log(error.message);
       toast.error("فشل الحفظ");
@@ -58,7 +52,6 @@ export function AddStateModal(props) {
   const handleSubmit = (e) => {
     e.preventDefault();
     saveState();
-    props.onHide();
   };
   return (
     <Modal
@@ -91,7 +84,7 @@ export function AddStateModal(props) {
             <ReactSelect
               options={props.users}
               isMulti
-              closeMenuOnSelect={false}
+              closeMenuOnSelect={true}
               hideSelectedOptions={false}
               components={{
                 Option,
@@ -125,7 +118,6 @@ export function AddStateModal(props) {
           <Button
             onClick={() => {
               saveState();
-              props.onHide();
             }}
             className="btn btn-primary"
           >
@@ -165,8 +157,8 @@ export function AddUserModal(props) {
     setDataToSend(props.user);
   }, [props.show]);
 
-  const handleChange = (selected) => {
-    setDataToSend({ ...dataToSend, authority: selected });
+  const handleChange = (selected, sup) => {
+    setDataToSend({ ...dataToSend, authority: selected, super: sup });
   };
   const handleNameChange = (e) => {
     setDataToSend({ ...dataToSend, name: e.target.value });
@@ -188,10 +180,14 @@ export function AddUserModal(props) {
         }
       );
       const responseData = await response.json();
-
+      console.log(responseData);
+      if (responseData.detail) {
+        throw new Error(responseData.status);
+      }
       toast.success("تم حفظ المستخدم");
       props.setShowSync(true);
       props.getUsers();
+      props.onHide();
     } catch (error) {
       console.log(error.message);
       toast.error("فشل الحفظ");
@@ -201,7 +197,6 @@ export function AddUserModal(props) {
   const handleSubmit = (e) => {
     e.preventDefault();
     saveUser();
-    props.onHide();
   };
   const multi = true;
   return (
@@ -260,7 +255,7 @@ export function AddUserModal(props) {
               <ReactSelect
                 options={[{ name: "كل الصلاحيات", id: "all" }, ...props.states]}
                 isMulti
-                closeMenuOnSelect={false}
+                closeMenuOnSelect={true}
                 hideSelectedOptions={false}
                 components={{
                   Option,
@@ -271,7 +266,8 @@ export function AddUserModal(props) {
                         [
                           { name: "كل الصلاحيات", id: "all" },
                           ...props.states,
-                        ].slice(1)
+                        ].slice(1),
+                        true
                       )
                     : !multi
                     ? handleChange((selected && selected.id) || null)
@@ -306,7 +302,6 @@ export function AddUserModal(props) {
           <Button
             onClick={() => {
               saveUser();
-              props.onHide();
             }}
             className="btn btn-primary"
           >

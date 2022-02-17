@@ -19,11 +19,33 @@ function States({
       id: "",
       name: "",
     },
+    users: null,
   });
   const [confirmModal, setConfirmModal] = useState({
     show: false,
     id: "",
   });
+
+  const [users, setUsers] = useState([]);
+  const getUsers = async () => {
+    try {
+      const response = await fetch(`${apiUrl}/users`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer`,
+        },
+      });
+
+      const responseData = await response.json();
+
+      setUsers(responseData.users.filter((user) => user.super != 1));
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
+  useEffect(() => {
+    getUsers();
+  }, []);
 
   const deleteState = async (id) => {
     try {
@@ -51,10 +73,14 @@ function States({
               id: "",
               name: "",
             },
+            users: null,
           })
         }
         getStates={getStates}
         state={addStateModal.state}
+        selectedUsers={addStateModal.users}
+        getUsers={getUsers}
+        users={users}
         setShowSync={setShowSync}
       />
       <ConfirmModal
@@ -90,6 +116,7 @@ function States({
                       id: "",
                       name: "",
                     },
+                    users: null,
                   })
                 }
               >
@@ -133,6 +160,13 @@ function States({
                             ...addStateModal,
                             show: true,
                             state: state,
+                            users: users.filter((user) => {
+                              return (
+                                user.authority.filter((authority) => {
+                                  return authority.id == state.id;
+                                }).length != 0
+                              );
+                            }),
                           });
                         }}
                       >

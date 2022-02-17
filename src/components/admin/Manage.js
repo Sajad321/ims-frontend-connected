@@ -50,7 +50,6 @@ function Manage({ sideBarShow, edit, states, setShowSync }) {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
-  console.log(data);
   const getUsers = async () => {
     try {
       const response = await fetch(`${apiUrl}/users`, {

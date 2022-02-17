@@ -56,37 +56,37 @@ function AddStudent({
     institute_id: "",
     poster_id: null,
     code_1: null,
-    code_2: null,
-    telegram_username: "",
+    // code_2: null,
+    telegram_username: null,
     first_phone: null,
-    second_phone: null,
+    // second_phone: null,
     total_amount: "",
     installments: [
       {
         install_id: 1,
         date: date,
-        amount: "",
+        amount: null,
         invoice: null,
         installment_name: "القسط الاول",
       },
       {
         install_id: 2,
         date: date,
-        amount: "",
+        amount: null,
         invoice: null,
         installment_name: "القسط الثاني",
       },
       {
         install_id: 3,
         date: date,
-        amount: "",
+        amount: null,
         invoice: null,
         installment_name: "القسط الثالث",
       },
       {
         install_id: 4,
         date: date,
-        amount: "",
+        amount: null,
         invoice: null,
         installment_name: "القسط الرابع",
       },
@@ -102,7 +102,6 @@ function AddStudent({
   const [students, setStudents] = useState([]);
   const [searched, setSearched] = useState([]);
   const [search, setSearch] = useState(false);
-  console.log(dataToSend);
   const getStudents = async () => {
     try {
       const response = await fetch(`${apiUrl}/students`, {
@@ -288,7 +287,6 @@ function AddStudent({
   const saveStudent = async () => {
     try {
       setSaving(true);
-      console.log(dataToSend);
       const response = await fetch(
         `${apiUrl}/students${dataToSend.id != "" ? `/` + dataToSend.id : ""}`,
         {
@@ -299,10 +297,13 @@ function AddStudent({
         }
       );
       const responseData = await response.json();
+      if (responseData.detail) {
+        throw new Error(responseData.status);
+      }
 
       toast.success("تم حفظ الطالب");
       setShowSync(true);
-      page();
+      handleStateStudentsButton();
     } catch (error) {
       console.log(error.message);
       setSaving(false);

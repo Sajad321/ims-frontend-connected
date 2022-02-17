@@ -50,11 +50,11 @@ function Reports({ sideBarShow, states }) {
 
       const responseData = await response.json();
 
-      // responseData.states.filter(
-      //   (state) =>
-      //     state.id in JSON.parse(localStorage.getItem("token")).authority
-      // );
-      // responseData.total_states = responseData.states.length;
+      responseData.states.filter(
+        (state) =>
+          state.id in JSON.parse(localStorage.getItem("token")).authority
+      );
+      responseData.total_states = responseData.states.length;
       let total_installments = 0;
       let total_first_installment = 0;
       let total_second_installment = 0;
