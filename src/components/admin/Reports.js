@@ -37,7 +37,7 @@ function Reports({ sideBarShow, states }) {
   const [search1, setSearch1] = useState("");
   const [search2, setSearch2] = useState("");
   const [searchState, setSearchState] = useState("0");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const getStudents = async () => {
     try {
@@ -49,12 +49,12 @@ function Reports({ sideBarShow, states }) {
       });
 
       const responseData = await response.json();
-
-      responseData.states.filter(
-        (state) =>
-          state.id in JSON.parse(localStorage.getItem("token")).authority
+      // console.log(responseData);
+      responseData.students.filter(
+        (student) =>
+          student.state.id in
+          JSON.parse(localStorage.getItem("token")).authority
       );
-      responseData.total_states = responseData.states.length;
       let total_installments = 0;
       let total_first_installment = 0;
       let total_second_installment = 0;
@@ -87,7 +87,15 @@ function Reports({ sideBarShow, states }) {
       });
 
       setData({
-        students: responseData.students,
+        students: responseData.students.sort((a, b) => {
+          if (a.name < b.name) {
+            return -1;
+          }
+          if (a.name > b.name) {
+            return 1;
+          }
+          return 0;
+        }),
         total_installments,
         total_first_installment,
         total_second_installment,
@@ -97,7 +105,15 @@ function Reports({ sideBarShow, states }) {
         page: 1,
       });
       setSearchedData({
-        students: responseData.students,
+        students: responseData.students.sort((a, b) => {
+          if (a.name < b.name) {
+            return -1;
+          }
+          if (a.name > b.name) {
+            return 1;
+          }
+          return 0;
+        }),
         total_installments,
         total_first_installment,
         total_second_installment,
@@ -204,15 +220,15 @@ function Reports({ sideBarShow, states }) {
           students: data.students
             .filter(
               (student) =>
-                (student.state.id == searchState &&
-                  student.installments[0].date <= search2 &&
+                ((student.installments[0].date <= search2 &&
                   student.installments[0].date >= search1) ||
-                (student.installments[1].date <= search2 &&
-                  student.installments[1].date >= search1) ||
-                (student.installments[2].date <= search2 &&
-                  student.installments[2].date >= search1) ||
-                (student.installments[3].date <= search2 &&
-                  student.installments[3].date >= search1)
+                  (student.installments[1].date <= search2 &&
+                    student.installments[1].date >= search1) ||
+                  (student.installments[2].date <= search2 &&
+                    student.installments[2].date >= search1) ||
+                  (student.installments[3].date <= search2 &&
+                    student.installments[3].date >= search1)) &&
+                student.state.id == searchState
             )
             .map((s) => {
               total_installments += s.total_amount;
@@ -237,15 +253,15 @@ function Reports({ sideBarShow, states }) {
           students: data.students
             .filter(
               (student) =>
-                (student.state.id == searchState &&
-                  student.installments[0].invoice <= search2 &&
+                ((student.installments[0].invoice <= search2 &&
                   student.installments[0].invoice >= search1) ||
-                (student.installments[1].invoice <= search2 &&
-                  student.installments[1].invoice >= search1) ||
-                (student.installments[2].invoice <= search2 &&
-                  student.installments[2].invoice >= search1) ||
-                (student.installments[3].invoice <= search2 &&
-                  student.installments[3].invoice >= search1)
+                  (student.installments[1].invoice <= search2 &&
+                    student.installments[1].invoice >= search1) ||
+                  (student.installments[2].invoice <= search2 &&
+                    student.installments[2].invoice >= search1) ||
+                  (student.installments[3].invoice <= search2 &&
+                    student.installments[3].invoice >= search1)) &&
+                student.state.id == searchState
             )
             .map((s) => {
               total_installments += s.total_amount;
@@ -633,7 +649,7 @@ function Reports({ sideBarShow, states }) {
                   <div className="row">
                     <label
                       htmlFor="total_first_installment"
-                      className="form-label text-center pt-2 col-6"
+                      className="form-label text-center col-6"
                     >
                       مجموع القسط الأول
                     </label>
@@ -705,7 +721,7 @@ function Reports({ sideBarShow, states }) {
                   <div className="row">
                     <label
                       htmlFor="total_forth_installment"
-                      className="form-label text-center pt-2 col-6"
+                      className="form-label text-center col-6"
                     >
                       مجموع القسط الرابع
                     </label>

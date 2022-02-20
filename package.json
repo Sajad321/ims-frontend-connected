@@ -1,6 +1,6 @@
 {
   "name": "ims",
-  "version": "2.0.0",
+  "version": "2.3.0",
   "description": "System for managing the installments of students",
   "private": true,
   "repository": {
@@ -43,7 +43,7 @@
     "build:python": "PyInstaller --clean -F --onefile -y .\\main.spec",
     "build": "cross-env NODE_ENV=production API_URL=http://localhost:8000 webpack --config webpack.build.config.js --mode production",
     "prepackage": "rimraf ./build && mkdir build && rimraf ./dist && mkdir dist && rimraf ./release-builds && mkdir release-builds",
-    "package": "npm run build && electron-packager --win32metadata.requested-execution-level=requireAdministrator ./ --out=./build --prune --asar --extra-resource=py_main.exe --ignore=release-builds --ignore=docs",
+    "package": "npm run build && electron-packager --win32metadata.requested-execution-level=requireAdministrator ./ --out=./build --prune --asar --extra-resource=py_main.exe --extra-resource=db.sqlite3 --ignore=release-builds --ignore=docs",
     "postpackage": "electron-builder --prepackaged ./build/ims-win32-x64 --publish=never "
   },
   "dependencies": {

@@ -9,7 +9,7 @@ import InfiniteScroll from "react-infinite-scroll-component";
 
 const apiUrl = process.env.API_URL;
 
-function Manage({ sideBarShow, edit, states, setShowSync }) {
+function Manage({ sideBarShow, edit, states, setSyncOp, syncOp }) {
   const [data, setData] = useState({
     users: [
       {
@@ -61,13 +61,15 @@ function Manage({ sideBarShow, edit, states, setShowSync }) {
 
       const responseData = await response.json();
       responseData.users.map((user) => {
-        user["authority_v"] = [
-          user.authority
-            .map((s) => {
-              return s.name;
-            })
-            .toString(),
-        ];
+        user["authority_v"] = user.super
+          ? "كل الصلاحيات"
+          : [
+              user.authority
+                .map((s) => {
+                  return s.name;
+                })
+                .toString(),
+            ];
         user["password"] = "";
       });
       setData({
@@ -110,7 +112,8 @@ function Manage({ sideBarShow, edit, states, setShowSync }) {
       const responseData = await response.json();
 
       toast.success("تم حذف المستخدم");
-      setShowSync(true);
+      setSyncOp({ ...syncOp, showSync: true });
+
       getUsers();
     } catch (error) {
       console.log(error.message);
@@ -237,7 +240,8 @@ function Manage({ sideBarShow, edit, states, setShowSync }) {
         getUsers={getUsers}
         user={addUserModal.user}
         states={states}
-        setShowSync={setShowSync}
+        setSyncOp={setSyncOp}
+        syncOp={syncOp}
       />
       <ConfirmModal
         show={confirmModal.show}

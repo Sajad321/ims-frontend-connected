@@ -8,7 +8,14 @@ import ConfirmModal from "../common/ConfirmModal";
 
 const apiUrl = process.env.API_URL;
 
-function Students({ sideBarShow, selectedState, add, edit, setShowSync }) {
+function Students({
+  sideBarShow,
+  selectedState,
+  add,
+  edit,
+  setSyncOp,
+  syncOp,
+}) {
   const [confirmModal, setConfirmModal] = useState({
     show: false,
     id: "",
@@ -28,12 +35,15 @@ function Students({ sideBarShow, selectedState, add, edit, setShowSync }) {
 
   const getStudents = async () => {
     try {
-      const response = await fetch(`${apiUrl}/students`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer`,
-        },
-      });
+      const response = await fetch(
+        `${apiUrl}/states/${selectedState.id}/students`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer`,
+          },
+        }
+      );
 
       const responseData = await response.json();
 
@@ -71,6 +81,7 @@ function Students({ sideBarShow, selectedState, add, edit, setShowSync }) {
         students: responseData.students.filter(
           (s) => s.state.id == selectedState.id
         ),
+        page: 1,
       });
       setLoading(false);
     } catch (error) {
@@ -126,7 +137,7 @@ function Students({ sideBarShow, selectedState, add, edit, setShowSync }) {
     };
     handleStudentDelete();
     handleDelete(id);
-    setShowSync(true);
+    setSyncOp({ ...syncOp, showSync: true });
     toast.success("تم حذف الطالب");
   };
 

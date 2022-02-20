@@ -11,7 +11,8 @@ function States({
   data,
   setSelectedState,
   handleStateStudentsButton,
-  setShowSync,
+  setSyncOp,
+  syncOp,
 }) {
   const [addStateModal, setAddStateModal] = useState({
     show: false,
@@ -19,7 +20,7 @@ function States({
       id: "",
       name: "",
     },
-    users: null,
+    users: [],
   });
   const [confirmModal, setConfirmModal] = useState({
     show: false,
@@ -55,6 +56,7 @@ function States({
       const responseData = await response.json();
 
       toast.success("تم حذف المنطقة");
+      setSyncOp({ ...syncOp, showSync: true });
       getStates();
     } catch (error) {
       console.log(error.message);
@@ -73,7 +75,7 @@ function States({
               id: "",
               name: "",
             },
-            users: null,
+            users: [],
           })
         }
         getStates={getStates}
@@ -81,7 +83,8 @@ function States({
         selectedUsers={addStateModal.users}
         getUsers={getUsers}
         users={users}
-        setShowSync={setShowSync}
+        setSyncOp={setSyncOp}
+        syncOp={syncOp}
       />
       <ConfirmModal
         show={confirmModal.show}
@@ -104,7 +107,7 @@ function States({
           }
           id="main-view"
         >
-          <div className="d-flex w-100 mt-3" dir="ltr">
+          <div className="d-flex w-100 mt-3 pt-2" dir="ltr">
             <div className="col-2 offset-1">
               <button
                 className="btn btn-primary text-white"
@@ -116,7 +119,7 @@ function States({
                       id: "",
                       name: "",
                     },
-                    users: null,
+                    users: [],
                   })
                 }
               >
@@ -126,10 +129,10 @@ function States({
             <h4 className="col-6 text-center">المناطق</h4>
           </div>
 
-          <div className="row pe-2 ps-2 mb-5">
+          <div className="row pe-2 ps-2 mb-5 pb-3">
             {data.states.map((state) => {
               return (
-                <div key={state.id} className="col-sm-3 p-2">
+                <div key={state.id} className="col-sm-3 p-4">
                   <div
                     className="card card-common"
                     style={{ border: 0 }}

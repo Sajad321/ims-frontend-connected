@@ -30,7 +30,7 @@
 }
 
 .bottom-bar {
-  background-color: #f0f3f5;
+  background-color: #ffffff;
   transition: 0.5s;
   border-top: 1px solid #c8ced3;
 }
@@ -372,8 +372,9 @@ thead .button.descending::after {
 
 .nav_logo-name {
   color: white;
-  grid-column: 3/4;
-  justify-self: center;
+  padding-right: 20px;
+  // grid-column: 3/4;
+  // justify-self: center;
   // font-weight: 700;
 }
 
@@ -519,6 +520,7 @@ thead .button.descending::after {
   margin-bottom: 0.5rem;
   transition: 0.3s;
   text-decoration: none;
+  cursor: pointer;
 }
 
 .nav_link:hover,
@@ -530,8 +532,9 @@ thead .button.descending::after {
   font-size: 1.25rem;
 }
 .nav_name {
-  grid-column: 3/4;
-  justify-self: center;
+  // grid-column: 3/4;
+  // justify-self: end;
+  padding-right: 20px;
 }
 // .show {
 //   display: none;

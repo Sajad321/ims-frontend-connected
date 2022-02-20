@@ -140,18 +140,35 @@ function AdminHeader(props) {
                   </a>
                 </div>
               </div>
-              {props.showSync ? (
-                <a className="nav_link_bottom" onClick={props.sync}>
-                  <FontAwesomeIcon
-                    icon="sync"
-                    className="nav_logo-icon"
-                    color="white"
-                    size="2x"
-                  />
-                  <span className="nav_name" id="nav-text">
-                    مزامنة
-                  </span>
-                </a>
+              {props.syncOp.showSync ? (
+                props.syncOp.syncing ? (
+                  <a className="nav_link_bottom nav_link">
+                    <FontAwesomeIcon
+                      icon="sync"
+                      className="nav_logo-icon"
+                      color="white"
+                      size="2x"
+                    />
+                    <span className="nav_name" id="nav-text">
+                      يتم المزامنة...
+                    </span>
+                  </a>
+                ) : (
+                  <a
+                    className="nav_link_bottom nav_link"
+                    onClick={props.goSync}
+                  >
+                    <FontAwesomeIcon
+                      icon="sync"
+                      className="nav_logo-icon"
+                      color="white"
+                      size="2x"
+                    />
+                    <span className="nav_name" id="nav-text">
+                      مزامنة
+                    </span>
+                  </a>
+                )
               ) : (
                 ""
               )}

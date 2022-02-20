@@ -51,9 +51,11 @@ function Admin(props) {
     states: [],
   });
   const [selectedState, setSelectedState] = useState({});
-  const [showSync, setShowSync] = useState(true);
+  const [students, setStudents] = useState([]);
+  const [syncOp, setSyncOp] = useState({ showSync: true, syncing: false });
   const goSync = async () => {
     try {
+      setSyncOp({ ...syncOp, syncing: true });
       const response = await fetch(`${apiUrl}/sync`, {
         method: "GET",
         headers: {
@@ -62,11 +64,12 @@ function Admin(props) {
       });
 
       const responseData = await response.json();
-      setShowSync(false);
       toast.success("تمت المزامنة بنجاح");
+      setSyncOp({ showSync: false, syncing: false });
     } catch (error) {
       console.log(error.message);
       toast.error("فشلت المزامنة");
+      setSyncOp({ showSync: true, syncing: false });
     }
   };
   const getStates = async () => {
@@ -93,8 +96,24 @@ function Admin(props) {
       console.log(error.message);
     }
   };
+  const getStudents = async () => {
+    try {
+      const response = await fetch(`${apiUrl}/students`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer`,
+        },
+      });
+
+      const responseData = await response.json();
+      setStudents(responseData.students);
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
   useEffect(() => {
     getStates();
+    getStudents();
   }, []);
 
   const AdminHeaderFunction = (Act) => {
@@ -109,7 +128,7 @@ function Admin(props) {
         sideBarShow={sideBarShow}
         setSideBarShow={setSideBarShow}
         goSync={goSync}
-        showSync={showSync}
+        syncOp={syncOp}
       />
     );
   };
@@ -159,7 +178,8 @@ function Admin(props) {
           data={states}
           setSelectedState={setSelectedState}
           handleStateStudentsButton={handleStateStudentsButton}
-          setShowSync={setShowSync}
+          setSyncOp={setSyncOp}
+          syncOp={syncOp}
         />
         <AdminFooter sideBarShow={sideBarShow} />
       </Fragment>
@@ -189,7 +209,8 @@ function Admin(props) {
           sideBarShow={sideBarShow}
           edit={handleEditStudentButton}
           states={states.states}
-          setShowSync={setShowSync}
+          setSyncOp={setSyncOp}
+          syncOp={syncOp}
         />
         <AdminFooter sideBarShow={sideBarShow} />
       </Fragment>
@@ -206,7 +227,8 @@ function Admin(props) {
           selectedState={selectedState}
           add={handleAddStudentButton}
           edit={handleEditStudentButton}
-          setShowSync={setShowSync}
+          setSyncOp={setSyncOp}
+          syncOp={syncOp}
         />
         <AdminFooter sideBarShow={sideBarShow} />
       </Fragment>
@@ -223,7 +245,10 @@ function Admin(props) {
           selectedState={selectedState}
           sideBarShow={sideBarShow}
           handleStateStudentsButton={handleStateStudentsButton}
-          setShowSync={setShowSync}
+          setSyncOp={setSyncOp}
+          syncOp={syncOp}
+          students={students}
+          getStudents={getStudents}
         />
         <AdminFooter sideBarShow={sideBarShow} />
       </Fragment>

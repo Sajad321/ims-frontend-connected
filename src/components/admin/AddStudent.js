@@ -13,7 +13,10 @@ function AddStudent({
   sideBarShow,
   selectedState,
   handleStateStudentsButton,
-  setShowSync,
+  students,
+  getStudents,
+  setSyncOp,
+  syncOP,
 }) {
   function pad(x, width = 2, char = "0") {
     return String(x).padStart(width, char);
@@ -56,10 +59,10 @@ function AddStudent({
     institute_id: "",
     poster_id: null,
     code_1: null,
-    // code_2: null,
+    code_2: null,
     telegram_username: null,
     first_phone: null,
-    // second_phone: null,
+    second_phone: null,
     total_amount: "",
     installments: [
       {
@@ -99,25 +102,8 @@ function AddStudent({
   const [institutes, setInstitutes] = useState([]);
   const [branches, setBranches] = useState([]);
   const [posters, setPosters] = useState([]);
-  const [students, setStudents] = useState([]);
   const [searched, setSearched] = useState([]);
   const [search, setSearch] = useState(false);
-  const getStudents = async () => {
-    try {
-      const response = await fetch(`${apiUrl}/students`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer`,
-        },
-      });
-
-      const responseData = await response.json();
-      setStudents(responseData.students);
-      setSearched(responseData.students);
-    } catch (error) {
-      console.log(error.message);
-    }
-  };
   useEffect(() => {
     const getInstitutes = async () => {
       try {
@@ -183,7 +169,7 @@ function AddStudent({
     getBranches();
     getInstitutes();
     getPosters();
-    getStudents();
+    setSearched(students.slice(0, 100));
     if (Object.keys(dataToChange).length != 0) {
       setDataToSend(dataToChange);
     }
@@ -191,7 +177,9 @@ function AddStudent({
   const handleNameChange = (e) => {
     setDataToSend({ ...dataToSend, name: e.target.value });
     const reg = new RegExp(e.target.value, "i");
-    setSearched(students.filter((student) => student.name.match(reg)));
+    setSearched(
+      students.filter((student) => student.name.match(reg)).slice(0, 100)
+    );
   };
   const handleSchoolChange = (e) => {
     setDataToSend({ ...dataToSend, school: e.target.value });
@@ -250,7 +238,7 @@ function AddStudent({
     for (let i = 0; i < dataToSend.installments.length; i++) {
       total -= dataToSend.installments[i].amount;
     }
-    total -= e.target.value;
+    // total -= e.target.value;
     if (total < 0) {
       setDataToSend({
         ...dataToSend,
@@ -273,9 +261,9 @@ function AddStudent({
       installments,
     });
   };
-  const handleInstallmentDateChange = (e, index) => {
+  const handleInstallmentDateChange = (date, index) => {
     const installments = [...dataToSend.installments];
-    installments[index].date = e.target.value;
+    installments[index].date = toLocalISOString(date).slice(0, 10);
     setDataToSend({
       ...dataToSend,
       installments,
@@ -302,7 +290,7 @@ function AddStudent({
       }
 
       toast.success("تم حفظ الطالب");
-      setShowSync(true);
+      setSyncOp({ ...syncOP, showSync: true });
       handleStateStudentsButton();
     } catch (error) {
       console.log(error.message);
@@ -313,8 +301,8 @@ function AddStudent({
   const handleSubmit = (e) => {
     e.preventDefault();
     saveStudent();
+    getStudents();
   };
-  const [startDate, setStartDate] = useState(new Date());
   return (
     <section className="">
       <div className="row pt-5 mt-4 m-0">
@@ -357,7 +345,7 @@ function AddStudent({
             <div className="col-8 p-2 offset-3">
               <form onSubmit={handleSubmit}>
                 <div className="mb-3 row position-relative">
-                  <div className="col-7 offset-1">
+                  <div className="col-7 offset-1" dir="rtl">
                     <input
                       id="name"
                       type="text"
@@ -536,7 +524,7 @@ function AddStudent({
                       value={dataToSend.poster_id}
                       required
                     >
-                      <option selected>اختر</option>
+                      <option selected>بدون</option>
                       {posters.map((poster) => (
                         <option key={poster.id} value={poster.id}>
                           {poster.name}
@@ -573,7 +561,6 @@ function AddStudent({
                           onChange={handleCode1Change}
                           className="form-control text"
                           value={dataToSend.code_1}
-                          required
                         ></input>
                       </div>
                     </div>
@@ -633,7 +620,7 @@ function AddStudent({
                           <div className="col-4 position-relative">
                             <DatePicker
                               id={`${installment.installment_name}-date`}
-                              selected={startDate}
+                              // selected={date}
                               className="form-control text"
                               onChange={(date) =>
                                 handleInstallmentDateChange(date, index)
@@ -730,30 +717,32 @@ function AddStudent({
                 </div>
 
                 <div className="mb-3 row">
-                  <div className="col-2 offset-3 mt-3">
-                    <button
-                      className="btn btn-danger btn-block w-100"
-                      onClick={page}
-                    >
-                      الغاء
-                    </button>
-                  </div>
                   <div className="col-2 mt-3">
                     {!saving ? (
                       <button
                         type="submit"
                         className="btn btn-success btn-block w-100"
                       >
-                        {dataToSend.id != "" ? "تعديل" : "حفظ"} الطالب
+                        {dataToSend.id != "" ? "تحديث" : "حفظ"} الطالب
                       </button>
                     ) : (
                       <button
                         disabled
+                        type="button"
                         className="btn btn-success btn-block w-100"
                       >
                         يتم الارسال
                       </button>
                     )}
+                  </div>
+                  <div className="col-2 offset-3 mt-3">
+                    <button
+                      type="button"
+                      className="btn btn-danger btn-block w-100"
+                      onClick={page}
+                    >
+                      الغاء
+                    </button>
                   </div>
                 </div>
               </form>

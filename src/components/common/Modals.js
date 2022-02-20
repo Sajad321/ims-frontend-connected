@@ -11,7 +11,7 @@ export function AddStateModal(props) {
   const [dataToSend, setDataToSend] = useState({
     id: "",
     name: "",
-    users: null,
+    users: [],
   });
   useEffect(() => {
     setDataToSend({ ...props.state, users: props.selectedUsers });
@@ -40,7 +40,7 @@ export function AddStateModal(props) {
         throw new Error(responseData.status);
       }
       toast.success("تم حفظ المنطقة");
-      props.setShowSync(true);
+      props.setSyncOp({ ...props.syncOp, showSync: true });
       props.getStates();
       props.getUsers();
       props.onHide();
@@ -60,6 +60,7 @@ export function AddStateModal(props) {
       size="md"
       dir="rtl"
       className=""
+      backdrop="static"
     >
       <Modal.Header closeButton>
         <Modal.Title>اضافة</Modal.Title>
@@ -84,7 +85,7 @@ export function AddStateModal(props) {
             <ReactSelect
               options={props.users}
               isMulti
-              closeMenuOnSelect={true}
+              closeMenuOnSelect={false}
               hideSelectedOptions={false}
               components={{
                 Option,
@@ -121,7 +122,7 @@ export function AddStateModal(props) {
             }}
             className="btn btn-primary"
           >
-            {dataToSend.id != "" ? "تعديل" : "انشاء"}
+            {dataToSend.id != "" ? "تحديث" : "انشاء"}
           </Button>
         </div>
       </Modal.Footer>
@@ -146,7 +147,7 @@ const Option = (props) => {
 export function AddUserModal(props) {
   const [dataToSend, setDataToSend] = useState({
     id: "",
-    authority: null,
+    authority: [],
     name: "",
     username: "",
     password: "",
@@ -158,6 +159,7 @@ export function AddUserModal(props) {
   }, [props.show]);
 
   const handleChange = (selected, sup) => {
+    console.log(sup);
     setDataToSend({ ...dataToSend, authority: selected, super: sup });
   };
   const handleNameChange = (e) => {
@@ -185,7 +187,7 @@ export function AddUserModal(props) {
         throw new Error(responseData.status);
       }
       toast.success("تم حفظ المستخدم");
-      props.setShowSync(true);
+      props.setSyncOp({ ...props.syncOp, showSync: true });
       props.getUsers();
       props.onHide();
     } catch (error) {
@@ -206,6 +208,7 @@ export function AddUserModal(props) {
       size="md"
       className=""
       dir="rtl"
+      backdrop="static"
     >
       <Modal.Header closeButton>
         <Modal.Title>اضافة</Modal.Title>
@@ -255,7 +258,7 @@ export function AddUserModal(props) {
               <ReactSelect
                 options={[{ name: "كل الصلاحيات", id: "all" }, ...props.states]}
                 isMulti
-                closeMenuOnSelect={true}
+                closeMenuOnSelect={false}
                 hideSelectedOptions={false}
                 components={{
                   Option,
@@ -270,8 +273,8 @@ export function AddUserModal(props) {
                         true
                       )
                     : !multi
-                    ? handleChange((selected && selected.id) || null)
-                    : handleChange(selected)
+                    ? handleChange((selected && selected.id) || null, false)
+                    : handleChange(selected, false)
                 }
                 allowSelectAll={true}
                 value={dataToSend.authority}
@@ -305,7 +308,7 @@ export function AddUserModal(props) {
             }}
             className="btn btn-primary"
           >
-            {dataToSend.id != "" ? "تعديل" : "انشاء"}
+            {dataToSend.id != "" ? "تحديث" : "انشاء"}
           </Button>
         </div>
       </Modal.Footer>
