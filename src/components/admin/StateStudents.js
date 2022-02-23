@@ -320,7 +320,11 @@ function Students({
               <form onSubmit={handleSearchButton}>
                 <div className="form-group row justify-content-center m-1 ">
                   <div className="col-1 text">
-                    <button className="btn btn-primary w-100" onClick={add}>
+                    <button
+                      type="button"
+                      className="btn btn-primary w-100"
+                      onClick={add}
+                    >
                       اضافة
                     </button>
                   </div>

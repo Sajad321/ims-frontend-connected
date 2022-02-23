@@ -49,19 +49,20 @@ function Reports({ sideBarShow, states }) {
       });
 
       const responseData = await response.json();
-      // console.log(responseData);
-      responseData.students.filter(
-        (student) =>
-          student.state.id in
-          JSON.parse(localStorage.getItem("token")).authority
-      );
+      let ss = responseData.students.filter((student) => {
+        return JSON.parse(localStorage.getItem("token"))
+          .authority.map((auth) => {
+            return auth.id;
+          })
+          .includes(student.state.id);
+      });
       let total_installments = 0;
       let total_first_installment = 0;
       let total_second_installment = 0;
       let total_third_installment = 0;
       let total_forth_installment = 0;
       let total_remaining = 0;
-      responseData.students.map((s) => {
+      ss.map((s) => {
         if (s.governorate) {
           s["governorate_v"] = s.governorate.name;
         }
@@ -87,7 +88,7 @@ function Reports({ sideBarShow, states }) {
       });
 
       setData({
-        students: responseData.students.sort((a, b) => {
+        students: ss.sort((a, b) => {
           if (a.name < b.name) {
             return -1;
           }
@@ -105,7 +106,7 @@ function Reports({ sideBarShow, states }) {
         page: 1,
       });
       setSearchedData({
-        students: responseData.students.sort((a, b) => {
+        students: ss.sort((a, b) => {
           if (a.name < b.name) {
             return -1;
           }
@@ -123,6 +124,7 @@ function Reports({ sideBarShow, states }) {
         page: 1,
       });
       setLoading(false);
+      ss = [];
     } catch (error) {
       console.log(error.message);
     }

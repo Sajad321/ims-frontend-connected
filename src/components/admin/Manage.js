@@ -275,6 +275,7 @@ function Manage({ sideBarShow, edit, states, setSyncOp, syncOp }) {
                 <div className="form-group row justify-content-center m-1 ">
                   <div className="col-1 text">
                     <button
+                      type="button"
                       className="btn btn-primary w-100"
                       onClick={() =>
                         setAddUserModal({

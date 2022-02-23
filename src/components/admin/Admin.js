@@ -82,15 +82,16 @@ function Admin(props) {
       });
 
       const responseData = await response.json();
-      responseData.states.filter(
-        (state) =>
-          state.id in JSON.parse(localStorage.getItem("token")).authority
-      );
-      responseData.total_states = responseData.states.length;
       setStates({
         ...states,
-        states: responseData.states,
-        total_states: responseData.total_states,
+        states: responseData.states.filter((state) => {
+          return JSON.parse(localStorage.getItem("token"))
+            .authority.map((auth) => {
+              return auth.id;
+            })
+            .includes(state.id);
+        }),
+        total_states: responseData.states.length,
       });
     } catch (error) {
       console.log(error.message);
@@ -163,7 +164,7 @@ function Admin(props) {
     setDataToChange(student);
     setPage("AddStudent");
   };
-
+  console.log(states);
   if (page == "States") {
     return (
       <Fragment>

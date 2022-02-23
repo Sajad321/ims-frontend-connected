@@ -34,6 +34,9 @@ export default function Login({ setToken }) {
       if (token.token) {
         ipcRenderer.send("finished-login");
       }
+      if (token.success == false) {
+        toast.error("اسم المستخدم او كلمة المرور خاطئة");
+      }
     }
   };
 

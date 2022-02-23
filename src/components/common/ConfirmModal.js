@@ -25,22 +25,22 @@ export default function ConfirmModal(props) {
         <div className="">
           <Button
             onClick={() => {
-              props.onHide();
-            }}
-            className="modal-add-nav"
-          >
-            لا
-          </Button>
-        </div>
-        <div className="">
-          <Button
-            onClick={() => {
               props.confirm(props.id);
               props.onHide();
             }}
             className="modal-add-nav"
           >
             نعم
+          </Button>
+        </div>
+        <div className="">
+          <Button
+            onClick={() => {
+              props.onHide();
+            }}
+            className="modal-add-nav"
+          >
+            لا
           </Button>
         </div>
       </Modal.Footer>

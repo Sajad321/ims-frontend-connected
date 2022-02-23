@@ -524,7 +524,9 @@ function AddStudent({
                       value={dataToSend.poster_id}
                       required
                     >
-                      <option selected>بدون</option>
+                      <option selected value={null}>
+                        بدون
+                      </option>
                       {posters.map((poster) => (
                         <option key={poster.id} value={poster.id}>
                           {poster.name}
@@ -644,7 +646,7 @@ function AddStudent({
                                 handleInstallmentInvoiceChange(e, index)
                               }
                               className="form-control text"
-                              value={dataToSend.invoice}
+                              value={installment.invoice}
                             ></input>
                           </div>
                           <label
