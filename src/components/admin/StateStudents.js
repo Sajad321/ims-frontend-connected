@@ -185,7 +185,7 @@ function Students({
               <td className="">{student.third_installment}</td>
               <td className="">{student.forth_installment}</td>
               <td className="">{student.remaining_amount}</td>
-              <td className="">{student.notes}</td>
+              <td className="">{student.note}</td>
               <td className="">
                 <button
                   className="btn btn-danger"
@@ -232,7 +232,7 @@ function Students({
               <td className="">{student.third_installment}</td>
               <td className="">{student.forth_installment}</td>
               <td className="">{student.remaining_amount}</td>
-              <td className="">{student.notes}</td>
+              <td className="">{student.note}</td>
               <td className="">
                 <button
                   className="btn btn-danger"

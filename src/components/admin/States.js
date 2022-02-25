@@ -38,7 +38,20 @@ function States({
       });
 
       const responseData = await response.json();
-
+      let user = JSON.parse(localStorage.getItem("token"));
+      if (user.super == 1) {
+        user.authority.push(
+          responseData.users
+            .filter((user) => {
+              return (
+                user.username ==
+                JSON.parse(localStorage.getItem("token")).username
+              );
+            })[0]
+            .authority.slice(-1)[0]
+        );
+        localStorage.setItem("token", JSON.stringify(user));
+      }
       setUsers(responseData.users.filter((user) => user.super != 1));
     } catch (error) {
       console.log(error.message);

@@ -41,8 +41,8 @@ export function AddStateModal(props) {
       }
       toast.success("تم حفظ المنطقة");
       props.setSyncOp({ ...props.syncOp, showSync: true });
-      props.getStates();
       props.getUsers();
+      props.getStates();
       props.onHide();
     } catch (error) {
       console.log(error.message);

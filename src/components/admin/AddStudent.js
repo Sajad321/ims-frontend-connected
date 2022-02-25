@@ -524,7 +524,7 @@ function AddStudent({
                       value={dataToSend.poster_id}
                       required
                     >
-                      <option selected value={null}>
+                      <option selected value={0}>
                         بدون
                       </option>
                       {posters.map((poster) => (
@@ -719,7 +719,7 @@ function AddStudent({
                 </div>
 
                 <div className="mb-3 row">
-                  <div className="col-2 mt-3">
+                  <div className="col-2 offset-2 mt-3">
                     {!saving ? (
                       <button
                         type="submit"
@@ -737,11 +737,11 @@ function AddStudent({
                       </button>
                     )}
                   </div>
-                  <div className="col-2 offset-3 mt-3">
+                  <div className="col-2 offset-1 mt-3">
                     <button
                       type="button"
                       className="btn btn-danger btn-block w-100"
-                      onClick={page}
+                      onClick={handleStateStudentsButton}
                     >
                       الغاء
                     </button>
