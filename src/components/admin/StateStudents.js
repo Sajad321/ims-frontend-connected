@@ -33,10 +33,16 @@ function Students({
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const getStudents = async () => {
+  const getStudents = async (page) => {
     try {
+      let rr = ``;
+      if (search != "") {
+        rr = `${apiUrl}/states/${selectedState.id}/students?page=${page}&search=${search}`;
+      }
       const response = await fetch(
-        `${apiUrl}/states/${selectedState.id}/students`,
+        rr != ``
+          ? rr
+          : `${apiUrl}/states/${selectedState.id}/students?page=${page}`,
         {
           method: "GET",
           headers: {
@@ -71,18 +77,40 @@ function Students({
         s["forth_installment"] = s.installments[3].amount;
       });
 
-      setData({
-        students: responseData.students.filter(
-          (s) => s.state.id == selectedState.id
-        ),
-        page: 1,
-      });
-      setSearchedData({
-        students: responseData.students.filter(
-          (s) => s.state.id == selectedState.id
-        ),
-        page: 1,
-      });
+      if (search != "") {
+        if (page == 1) {
+          setSearchedData({
+            students: responseData.students,
+            total_students: responseData.total_students,
+            page: responseData.page,
+          });
+        } else {
+          setSearchedData({
+            students: searchedData.students.concat(responseData.students),
+            total_students: responseData.total_students,
+            page: responseData.page,
+          });
+        }
+      } else {
+        if (page == 1) {
+          setData({
+            students: responseData.students,
+            total_students: responseData.total_students,
+            page: responseData.page,
+          });
+          setSearchedData({
+            students: responseData.students,
+            total_students: responseData.total_students,
+            page: responseData.page,
+          });
+        } else {
+          setData({
+            students: data.students.concat(responseData.students),
+            total_students: responseData.total_students,
+            page: responseData.page,
+          });
+        }
+      }
       setLoading(false);
     } catch (error) {
       console.log(error.message);
@@ -90,7 +118,7 @@ function Students({
   };
 
   useEffect(() => {
-    getStudents();
+    getStudents(1);
   }, []);
 
   const handleSearchChange = (e) => {
@@ -99,12 +127,7 @@ function Students({
   const handleSearchButton = (e) => {
     e.preventDefault();
     setLoading(true);
-    const reg = new RegExp(search, "i");
-    setSearchedData({
-      ...data,
-      students: data.students.filter((student) => student.name.match(reg)),
-    });
-    setLoading(false);
+    getStudents(1);
   };
 
   const handleEditButton = (student) => {
@@ -158,99 +181,95 @@ function Students({
   const render_table = () => {
     let render_data = [];
     if (search != "") {
-      render_data = searchedData.students
-        .slice(0, searchedData.page * 100)
-        .map((student, index) => {
-          return (
-            <tr
-              key={student.id}
-              className="font-weight-bold"
-              onClick={() => handleEditButton(student)}
-            >
-              <td className="">{index + 1}</td>
-              <td className="">{student.name}</td>
-              <td className="">{student.school}</td>
-              <td className="">{student.governorate_v}</td>
-              <td className="">{student.institute_v}</td>
-              <td className="">{student.branch_v}</td>
-              <td className="">{student.first_phone}</td>
-              <td className="">{student.second_phone}</td>
-              <td className="">{student.telegram_username}</td>
-              <td className="">{student.poster_v}</td>
-              <td className="">{student.code_1}</td>
-              <td className="">{student.code_2}</td>
-              <td className="">{student.total_amount}</td>
-              <td className="">{student.first_installment}</td>
-              <td className="">{student.second_installment}</td>
-              <td className="">{student.third_installment}</td>
-              <td className="">{student.forth_installment}</td>
-              <td className="">{student.remaining_amount}</td>
-              <td className="">{student.note}</td>
-              <td className="">
-                <button
-                  className="btn btn-danger"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setConfirmModal({
-                      ...confirmModal,
-                      show: true,
-                      id: student.id,
-                    });
-                  }}
-                >
-                  حذف
-                </button>
-              </td>
-            </tr>
-          );
-        });
+      render_data = searchedData.students.map((student, index) => {
+        return (
+          <tr
+            key={student.id}
+            className="font-weight-bold"
+            onClick={() => handleEditButton(student)}
+          >
+            <td className="">{index + 1}</td>
+            <td className="">{student.name}</td>
+            <td className="">{student.school}</td>
+            <td className="">{student.governorate_v}</td>
+            <td className="">{student.institute_v}</td>
+            <td className="">{student.branch_v}</td>
+            <td className="">{student.first_phone}</td>
+            <td className="">{student.second_phone}</td>
+            <td className="">{student.telegram_username}</td>
+            <td className="">{student.poster_v}</td>
+            <td className="">{student.code_1}</td>
+            <td className="">{student.code_2}</td>
+            <td className="">{student.total_amount}</td>
+            <td className="">{student.first_installment}</td>
+            <td className="">{student.second_installment}</td>
+            <td className="">{student.third_installment}</td>
+            <td className="">{student.forth_installment}</td>
+            <td className="">{student.remaining_amount}</td>
+            <td className="">{student.note}</td>
+            <td className="">
+              <button
+                className="btn btn-danger"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setConfirmModal({
+                    ...confirmModal,
+                    show: true,
+                    id: student.id,
+                  });
+                }}
+              >
+                حذف
+              </button>
+            </td>
+          </tr>
+        );
+      });
     } else {
-      render_data = data.students
-        .slice(0, data.page * 100)
-        .map((student, index) => {
-          return (
-            <tr
-              key={student.id}
-              className="font-weight-bold"
-              onClick={() => handleEditButton(student)}
-            >
-              <td className="">{index + 1}</td>
-              <td className="">{student.name}</td>
-              <td className="">{student.school}</td>
-              <td className="">{student.governorate_v}</td>
-              <td className="">{student.institute_v}</td>
-              <td className="">{student.branch_v}</td>
-              <td className="">{student.first_phone}</td>
-              <td className="">{student.second_phone}</td>
-              <td className="">{student.telegram_username}</td>
-              <td className="">{student.poster_v}</td>
-              <td className="">{student.code_1}</td>
-              <td className="">{student.code_2}</td>
-              <td className="">{student.total_amount}</td>
-              <td className="">{student.first_installment}</td>
-              <td className="">{student.second_installment}</td>
-              <td className="">{student.third_installment}</td>
-              <td className="">{student.forth_installment}</td>
-              <td className="">{student.remaining_amount}</td>
-              <td className="">{student.note}</td>
-              <td className="">
-                <button
-                  className="btn btn-danger"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setConfirmModal({
-                      ...confirmModal,
-                      show: true,
-                      id: student.id,
-                    });
-                  }}
-                >
-                  حذف
-                </button>
-              </td>
-            </tr>
-          );
-        });
+      render_data = data.students.map((student, index) => {
+        return (
+          <tr
+            key={student.id}
+            className="font-weight-bold"
+            onClick={() => handleEditButton(student)}
+          >
+            <td className="">{index + 1}</td>
+            <td className="">{student.name}</td>
+            <td className="">{student.school}</td>
+            <td className="">{student.governorate_v}</td>
+            <td className="">{student.institute_v}</td>
+            <td className="">{student.branch_v}</td>
+            <td className="">{student.first_phone}</td>
+            <td className="">{student.second_phone}</td>
+            <td className="">{student.telegram_username}</td>
+            <td className="">{student.poster_v}</td>
+            <td className="">{student.code_1}</td>
+            <td className="">{student.code_2}</td>
+            <td className="">{student.total_amount}</td>
+            <td className="">{student.first_installment}</td>
+            <td className="">{student.second_installment}</td>
+            <td className="">{student.third_installment}</td>
+            <td className="">{student.forth_installment}</td>
+            <td className="">{student.remaining_amount}</td>
+            <td className="">{student.note}</td>
+            <td className="">
+              <button
+                className="btn btn-danger"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setConfirmModal({
+                    ...confirmModal,
+                    show: true,
+                    id: student.id,
+                  });
+                }}
+              >
+                حذف
+              </button>
+            </td>
+          </tr>
+        );
+      });
     }
     return (
       <table
@@ -355,19 +374,15 @@ function Students({
                     search != "" ? searchedData.page * 100 : data.page * 100
                   } //This is important field to render the next data
                   next={() =>
-                    search != ""
-                      ? setSearchedData({
-                          ...searchedData,
-                          page: searchedData.page + 1,
-                        })
-                      : setData({ ...data, page: data.page + 1 })
+                    getStudents(
+                      search != "" ? searchedData.page + 1 : data.page + 1
+                    )
                   }
                   hasMore={
                     search != ""
-                      ? searchedData.students.slice(0, searchedData.page * 100)
-                          .length != searchedData.students.length
-                      : data.students.slice(0, data.page * 100).length !=
-                        data.students.length
+                      ? searchedData.total_students !=
+                        searchedData.students.length
+                      : data.total_students != data.students.length
                   }
                   loader={<Loading />}
                   endMessage={
