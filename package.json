@@ -1,6 +1,6 @@
 {
   "name": "ims",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "description": "System for managing the installments of students",
   "private": true,
   "repository": {

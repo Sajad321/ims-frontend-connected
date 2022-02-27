@@ -488,7 +488,7 @@ function Reports({ sideBarShow, states }) {
               <td className="">{student.third_installment}</td>
               <td className="">{student.forth_installment}</td>
               <td className="">{student.remaining_amount}</td>
-              <td className="">{student.notes}</td>
+              <td className="">{student.note}</td>
             </tr>
           );
         });
@@ -512,7 +512,7 @@ function Reports({ sideBarShow, states }) {
               <td className="">{student.third_installment}</td>
               <td className="">{student.forth_installment}</td>
               <td className="">{student.remaining_amount}</td>
-              <td className="">{student.notes}</td>
+              <td className="">{student.note}</td>
             </tr>
           );
         });
