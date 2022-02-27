@@ -84,13 +84,16 @@ function Admin(props) {
       const responseData = await response.json();
       setStates({
         ...states,
-        states: responseData.states.filter((state) => {
-          return JSON.parse(localStorage.getItem("token"))
-            .authority.map((auth) => {
-              return auth.id;
-            })
-            .includes(state.id);
-        }),
+        states:
+          JSON.parse(localStorage.getItem("token")).super == 1
+            ? responseData.states
+            : responseData.states.filter((state) => {
+                return JSON.parse(localStorage.getItem("token"))
+                  .authority.map((auth) => {
+                    return auth.id;
+                  })
+                  .includes(state.id);
+              }),
         total_states: responseData.states.length,
       });
     } catch (error) {

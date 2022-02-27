@@ -49,13 +49,16 @@ function Reports({ sideBarShow, states }) {
       });
 
       const responseData = await response.json();
-      let ss = responseData.students.filter((student) => {
-        return JSON.parse(localStorage.getItem("token"))
-          .authority.map((auth) => {
-            return auth.id;
-          })
-          .includes(student.state.id);
-      });
+      let ss =
+        JSON.parse(localStorage.getItem("token")).super == 1
+          ? responseData.states
+          : responseData.students.filter((student) => {
+              return JSON.parse(localStorage.getItem("token"))
+                .authority.map((auth) => {
+                  return auth.id;
+                })
+                .includes(student.state.id);
+            });
       let total_installments = 0;
       let total_first_installment = 0;
       let total_second_installment = 0;
