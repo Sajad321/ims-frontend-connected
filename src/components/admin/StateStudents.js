@@ -138,11 +138,19 @@ function Students({
     let searchedIndex = [...searchedData.students].findIndex((i) => i.id == id);
     let neeSerached = [...searchedData.students];
     neeSerached = neeSerached.filter((s, i) => i != searchedIndex);
-    setSearchedData({ ...searchedData, students: neeSerached });
+    setSearchedData({
+      ...searchedData,
+      students: neeSerached,
+      total_students: searchedData.total_students - 1,
+    });
     let index = [...data.students].findIndex((i) => i.id == id);
     let nee = [...data.students];
     nee = nee.filter((s, i) => i != index);
-    setData({ ...data, students: nee });
+    setData({
+      ...data,
+      students: nee,
+      total_students: data.total_students - 1,
+    });
   };
 
   const handleDeleteButton = (id) => {
