@@ -51,7 +51,7 @@ function Reports({ sideBarShow, states }) {
       const responseData = await response.json();
       let ss =
         JSON.parse(localStorage.getItem("token")).super == 1
-          ? responseData.states
+          ? responseData.students
           : responseData.students.filter((student) => {
               return JSON.parse(localStorage.getItem("token"))
                 .authority.map((auth) => {
