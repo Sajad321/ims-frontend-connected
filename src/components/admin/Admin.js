@@ -102,7 +102,7 @@ function Admin(props) {
   };
   const getStudents = async () => {
     try {
-      const response = await fetch(`${apiUrl}/students`, {
+      const response = await fetch(`${apiUrl}/students-names`, {
         method: "GET",
         headers: {
           Authorization: `Bearer`,
