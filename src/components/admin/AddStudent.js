@@ -53,6 +53,7 @@ function AddStudent({
     id: "",
     name: "",
     school: "",
+    dob: "",
     state_id: selectedState.id,
     governorate_id: 1,
     branch_id: 1,
@@ -70,6 +71,7 @@ function AddStudent({
         date: date,
         amount: null,
         invoice: null,
+        received: 0,
         installment_name: "القسط الاول",
       },
       {
@@ -77,6 +79,7 @@ function AddStudent({
         date: date,
         amount: null,
         invoice: null,
+        received: 0,
         installment_name: "القسط الثاني",
       },
       {
@@ -84,6 +87,7 @@ function AddStudent({
         date: date,
         amount: null,
         invoice: null,
+        received: 0,
         installment_name: "القسط الثالث",
       },
       {
@@ -91,11 +95,14 @@ function AddStudent({
         date: date,
         amount: null,
         invoice: null,
+        received: 0,
         installment_name: "القسط الرابع",
       },
     ],
     remaining_amount: "",
+    banned: null,
     note: "",
+    photo: null,
   });
   const [saving, setSaving] = useState(false);
   const [governorates, setGovenorates] = useState([]);
@@ -104,6 +111,8 @@ function AddStudent({
   const [posters, setPosters] = useState([]);
   const [searched, setSearched] = useState([]);
   const [search, setSearch] = useState(false);
+  const [photo, setPhoto] = useState(null);
+  const [qr, setQr] = useState(null);
   useEffect(() => {
     const getInstitutes = async () => {
       try {
@@ -165,6 +174,7 @@ function AddStudent({
         console.log(error.message);
       }
     };
+
     getGovenorates();
     getBranches();
     getInstitutes();
@@ -172,6 +182,48 @@ function AddStudent({
     setSearched(students.slice(0, 100));
     if (Object.keys(dataToChange).length != 0) {
       setDataToSend(dataToChange);
+      const getPhoto = async () => {
+        try {
+          const response = await fetch(
+            `${apiUrl}/photo?student_id=${dataToChange.id}`,
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer`,
+              },
+            }
+          );
+
+          const responseData = await response.blob();
+          setPhoto(responseData);
+          document.getElementById("myimage").src =
+            URL.createObjectURL(responseData);
+        } catch (error) {
+          console.log(error.message);
+        }
+      };
+      const getQr = async () => {
+        try {
+          const response = await fetch(
+            `${apiUrl}/qr?student_id=${dataToChange.id}`,
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer`,
+              },
+            }
+          );
+
+          const responseData = await response.blob();
+          setQr(responseData);
+          document.getElementById("myqr").src =
+            URL.createObjectURL(responseData);
+        } catch (error) {
+          console.log(error.message);
+        }
+      };
+      getPhoto();
+      getQr();
     }
   }, []);
   const handleNameChange = (e) => {
@@ -180,6 +232,12 @@ function AddStudent({
     setSearched(
       students.filter((student) => student.name.match(reg)).slice(0, 100)
     );
+  };
+  const handleDOBChange = (date) => {
+    setDataToSend({
+      ...dataToSend,
+      dob: toLocalISOString(date).slice(0, 10),
+    });
   };
   const handleSchoolChange = (e) => {
     setDataToSend({ ...dataToSend, school: e.target.value });
@@ -233,7 +291,11 @@ function AddStudent({
   };
   const handleInstallmentAmountChange = (e, index) => {
     const installments = [...dataToSend.installments];
-    installments[index].amount = e.target.value;
+    if (e.target.value != "") {
+      installments[index].amount = e.target.value;
+    } else {
+      installments[index].amount = null;
+    }
     let total = dataToSend.total_amount;
     for (let i = 0; i < dataToSend.installments.length; i++) {
       total -= dataToSend.installments[i].amount;
@@ -255,7 +317,11 @@ function AddStudent({
   };
   const handleInstallmentInvoiceChange = (e, index) => {
     const installments = [...dataToSend.installments];
-    installments[index].invoice = e.target.value;
+    if (e.target.value != "") {
+      installments[index].invoice = e.target.value;
+    } else {
+      installments[index].invoice = null;
+    }
     setDataToSend({
       ...dataToSend,
       installments,
@@ -269,9 +335,38 @@ function AddStudent({
       installments,
     });
   };
+  const handleInstallmentReceivedChange = (e, index) => {
+    const installments = [...dataToSend.installments];
+    installments[index].received = e.target.checked;
+    setDataToSend({
+      ...dataToSend,
+      installments,
+    });
+  };
+  const handleBannedChange = (e) => {
+    setDataToSend({
+      ...dataToSend,
+      banned: e.target.checked,
+    });
+  };
   const handleNoteChange = (e) =>
     setDataToSend({ ...dataToSend, note: e.target.value });
 
+  const handlePhotoChange = (e) => {
+    setPhoto(new Blob([e.target.files[0]], { type: "image/jpeg" }));
+    var fr = new FileReader();
+    fr.onload = function (event) {
+      document.getElementById("myimage").src = event.target.result;
+    };
+    fr.readAsDataURL(e.target.files[0]);
+  };
+  if (photo != null) {
+    var fr = new FileReader();
+    fr.onload = function (event) {
+      document.getElementById("myimage").src = event.target.result;
+    };
+    fr.readAsDataURL(photo);
+  }
   const saveStudent = async () => {
     try {
       setSaving(true);
@@ -281,14 +376,28 @@ function AddStudent({
           method: dataToSend.id != "" ? "PATCH" : "POST",
           headers: { "Content-Type": "application/json" },
 
-          body: JSON.stringify(dataToSend),
+          body: JSON.stringify({
+            ...dataToSend,
+            token: localStorage.getItem("Biotime"),
+          }),
         }
       );
       const responseData = await response.json();
+      console.log(responseData);
       if (responseData.detail) {
-        throw new Error(responseData.status);
+        throw new Error(responseData.detail);
       }
 
+      if (photo != null) {
+        let imgData = new FormData();
+
+        imgData.append("photo", photo);
+        const responseImg = await fetch(
+          `${apiUrl}/photo?student_id=${Number(responseData.id)}`,
+          { method: "PATCH", body: imgData }
+        );
+        const responseBlob = await responseImg.blob();
+      }
       toast.success("تم حفظ الطالب");
       setSyncOp({ ...syncOP, showSync: true });
       handleStateStudentsButton();
@@ -342,7 +451,19 @@ function AddStudent({
             <h2 className="col-8 text-center">الطالب</h2>
           </div>
           <div className="row pt-md-3 pr-2 pl-2 mb-5">
-            <div className="col-8 p-2 offset-3">
+            <div className="col-2 offset-1 mt-5">
+              {photo ? (
+                <img id="myimage" className="img-student-attendance" />
+              ) : (
+                <img src="" id="myimage" className="img-student-attendance" />
+              )}
+              {qr ? (
+                <img id="myqr" className="img-student-attendance" />
+              ) : (
+                <img src="" id="myqr" className="img-student-attendance" />
+              )}
+            </div>
+            <div className="col-8 p-2">
               <form onSubmit={handleSubmit}>
                 <div className="mb-3 row position-relative">
                   <div className="col-7 offset-1" dir="rtl">
@@ -379,6 +500,25 @@ function AddStudent({
                     className="col-2 form-label text-center p-2"
                   >
                     اسم الطالب/ة
+                  </label>
+                </div>
+
+                <div className="mb-3 row">
+                  <div className="col-7 offset-1">
+                    <DatePicker
+                      id={`dob`}
+                      // selected={date}
+                      className="form-control text"
+                      onChange={(date) => handleDOBChange(date)}
+                      dateFormat="yyyy/MM/dd"
+                      value={dataToSend.dob}
+                    />
+                  </div>
+                  <label
+                    htmlFor="dob"
+                    className="col-2 form-label text-center p-2"
+                  >
+                    تاريخ الولادة
                   </label>
                 </div>
 
@@ -669,6 +809,17 @@ function AddStudent({
                           </div>
                         </div>
                       </div>
+                      <div className="col-1 pe-0">
+                        <input
+                          id="received"
+                          className="form-check-input"
+                          type="checkbox"
+                          checked={installment.received == 1}
+                          onChange={(e) =>
+                            handleInstallmentReceivedChange(e, index)
+                          }
+                        />
+                      </div>
                       <label
                         htmlFor={installment.installment_name}
                         className="col-2 form-label text-center p-2"
@@ -718,6 +869,41 @@ function AddStudent({
                   </label>
                 </div>
 
+                <div className="mb-3 row">
+                  <div className="col-1 offset-7">
+                    <input
+                      id="banned"
+                      className="form-check-input"
+                      type="checkbox"
+                      checked={dataToSend.banned == 1}
+                      onChange={handleBannedChange}
+                    />
+                  </div>
+                  <label
+                    htmlFor="banned"
+                    className="col-2 form-label text-center p-2"
+                  >
+                    مفصول
+                  </label>
+                </div>
+                <div className="form-group row">
+                  <div className="col-7 offset-1 order-last order-md-first">
+                    <input
+                      id="photo"
+                      type="file"
+                      onChange={handlePhotoChange}
+                      className="form-control text"
+                      accept=".jpg,.jpeg"
+                      // required
+                    ></input>
+                  </div>
+                  <label
+                    htmlFor="photo"
+                    className="col-12 col-md-2 col-form-label text-center text-white order-first order-md-last"
+                  >
+                    الصورة
+                  </label>
+                </div>
                 <div className="mb-3 row">
                   <div className="col-2 offset-2 mt-3">
                     {!saving ? (

@@ -138,39 +138,50 @@ function AdminHeader(props) {
                       التقارير
                     </span>
                   </a>
-                </div>
-              </div>
-              {props.syncOp.showSync ? (
-                props.syncOp.syncing ? (
-                  <a className="nav_link_bottom nav_link">
-                    <FontAwesomeIcon
-                      icon="sync"
-                      className="nav_logo-icon"
-                      color="white"
-                      size="2x"
-                    />
-                    <span className="nav_name" id="nav-text">
-                      يتم المزامنة...
-                    </span>
-                  </a>
-                ) : (
                   <a
-                    className="nav_link_bottom nav_link"
-                    onClick={props.goSync}
+                    href="#"
+                    className={"nav_link " + props.Active.Installments}
+                    onClick={props.InstallmentsButton}
                   >
                     <FontAwesomeIcon
-                      icon="sync"
-                      className="nav_logo-icon"
+                      icon="chart-line"
+                      className={"nav_logo-icon " + props.Active.Installments}
                       color="white"
                       size="2x"
                     />
-                    <span className="nav_name" id="nav-text">
-                      مزامنة
+                    <span
+                      className={"nav_name " + props.Active.Installments}
+                      id="nav-text"
+                    >
+                      الاقساط
                     </span>
                   </a>
-                )
+                </div>
+              </div>
+              {props.syncOp.syncing ? (
+                <a className="nav_link_bottom nav_link">
+                  <FontAwesomeIcon
+                    icon="sync"
+                    className="nav_logo-icon"
+                    color="white"
+                    size="2x"
+                  />
+                  <span className="nav_name" id="nav-text">
+                    يتم المزامنة...
+                  </span>
+                </a>
               ) : (
-                ""
+                <a className="nav_link_bottom nav_link" onClick={props.goSync}>
+                  <FontAwesomeIcon
+                    icon="sync"
+                    className="nav_logo-icon"
+                    color="white"
+                    size="2x"
+                  />
+                  <span className="nav_name" id="nav-text">
+                    مزامنة
+                  </span>
+                </a>
               )}
             </nav>
           </div>

@@ -7,6 +7,8 @@ import StateStudents from "./StateStudents";
 import AddStudent from "./AddStudent";
 import Manage from "./Manage";
 import { toast } from "react-toastify";
+import AddInstallment from "./AddInstallment";
+import Installments from "./Installments";
 const apiUrl = process.env.API_URL;
 
 function Admin(props) {
@@ -88,7 +90,7 @@ function Admin(props) {
           JSON.parse(localStorage.getItem("token")).super == 1
             ? responseData.states
             : responseData.states.filter((state) => {
-                return JSON.parse(localStorage.getItem("token"))
+                return JSON.parse(localStorage.getItem("super"))
                   .authority.map((auth) => {
                     return auth.id;
                   })
@@ -128,6 +130,8 @@ function Admin(props) {
         MainButton={handleStatesButton}
         handleManageButton={handleManageButton}
         ReportsButton={handleReportsButton}
+        InstallmentsButton={handleInstallmentsButton}
+        AddInstallmentButton={handleAddInstallmentButton}
         sideEvent={sideEvent}
         sideBarShow={sideBarShow}
         setSideBarShow={setSideBarShow}
@@ -145,6 +149,11 @@ function Admin(props) {
 
   const handleReportsButton = () => {
     setPage("Reports");
+    setDataToChange({});
+  };
+
+  const handleInstallmentsButton = () => {
+    setPage("Installments");
     setDataToChange({});
   };
 
@@ -167,6 +176,17 @@ function Admin(props) {
     setDataToChange(student);
     setPage("AddStudent");
   };
+
+  const handleAddInstallmentButton = () => {
+    setPage("AddInstallment");
+    setDataToChange({});
+  };
+
+  const handleEditInstallmentButton = (installment) => {
+    setDataToChange(installment);
+    setPage("AddInstallment");
+  };
+
   console.log(states);
   if (page == "States") {
     return (
@@ -198,6 +218,20 @@ function Admin(props) {
           sideEvent={sideEvent}
           sideBarShow={sideBarShow}
           states={states.states}
+        />
+        <AdminFooter sideBarShow={sideBarShow} />
+      </Fragment>
+    );
+  } else if (page == "Installments") {
+    return (
+      <Fragment>
+        {AdminHeaderFunction({ Installments: "active" })}
+        {/* End of Navbar */}
+        {/* Reports */}
+        <Installments
+          sideEvent={sideEvent}
+          sideBarShow={sideBarShow}
+          edit={handleEditInstallmentButton}
         />
         <AdminFooter sideBarShow={sideBarShow} />
       </Fragment>
@@ -253,6 +287,24 @@ function Admin(props) {
           syncOp={syncOp}
           students={students}
           getStudents={getStudents}
+        />
+        <AdminFooter sideBarShow={sideBarShow} />
+      </Fragment>
+    );
+  } else if (page == "AddInstallment") {
+    return (
+      <Fragment>
+        {AdminHeaderFunction({ Add: "active" })}
+        {/* End of Navbar */}
+        {/* AddInstallment */}
+        <AddInstallment
+          page={handleStatesButton}
+          dataToChange={dataToChange}
+          sideBarShow={sideBarShow}
+          setSyncOp={setSyncOp}
+          syncOp={syncOp}
+          getStudents={getStudents}
+          handleStatesButton={handleStatesButton}
         />
         <AdminFooter sideBarShow={sideBarShow} />
       </Fragment>

@@ -32,7 +32,6 @@ function Students({
   });
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-
   const getStudents = async (page) => {
     try {
       let rr = ``;
@@ -72,9 +71,13 @@ function Students({
         }
         s["state_id"] = s.state.id;
         s["first_installment"] = s.installments[0].amount;
+        s["first_installment_paid"] = s.installments[0].received;
         s["second_installment"] = s.installments[1].amount;
+        s["second_installment_paid"] = s.installments[1].received;
         s["third_installment"] = s.installments[2].amount;
+        s["third_installment_paid"] = s.installments[2].received;
         s["forth_installment"] = s.installments[3].amount;
+        s["forth_installment_paid"] = s.installments[3].received;
       });
 
       if (search != "") {
@@ -131,6 +134,7 @@ function Students({
   };
 
   const handleEditButton = (student) => {
+    console.log(student);
     edit({ ...student });
   };
 
@@ -210,9 +214,13 @@ function Students({
             <td className="">{student.code_2}</td>
             <td className="">{student.total_amount}</td>
             <td className="">{student.first_installment}</td>
+            <td className="">{student.first_installment_paid}</td>
             <td className="">{student.second_installment}</td>
+            <td className="">{student.second_installment_paid}</td>
             <td className="">{student.third_installment}</td>
+            <td className="">{student.third_installment_paid}</td>
             <td className="">{student.forth_installment}</td>
+            <td className="">{student.forth_installment_paid}</td>
             <td className="">{student.remaining_amount}</td>
             <td className="">{student.note}</td>
             <td className="">
@@ -255,9 +263,13 @@ function Students({
             <td className="">{student.code_2}</td>
             <td className="">{student.total_amount}</td>
             <td className="">{student.first_installment}</td>
+            <td className="">{student.first_installment_paid}</td>
             <td className="">{student.second_installment}</td>
+            <td className="">{student.second_installment_paid}</td>
             <td className="">{student.third_installment}</td>
+            <td className="">{student.third_installment_paid}</td>
             <td className="">{student.forth_installment}</td>
+            <td className="">{student.forth_installment_paid}</td>
             <td className="">{student.remaining_amount}</td>
             <td className="">{student.note}</td>
             <td className="">
@@ -302,9 +314,13 @@ function Students({
             <th className="">الكود الثاني</th>
             <th className="">المبلغ الكلي</th>
             <th className="">القسط الاول</th>
+            <th className="">مدفوع</th>
             <th className="">القسط الثاني</th>
+            <th className="">مدفوع</th>
             <th className="">القسط الثالث</th>
+            <th className="">مدفوع</th>
             <th className="">القسط الرابع</th>
+            <th className="">مدفوع</th>
             <th className="">المبلغ المتبقي</th>
             <th className="">الملاحظات</th>
             <th className="">الاجراء</th>

@@ -30,7 +30,9 @@ export default function Login({ setToken }) {
       password,
     });
     if (token != undefined) {
-      setToken(token);
+      setToken(token.token);
+      localStorage.setItem("Biotime", token.biotime);
+      localStorage.setItem("token", JSON.stringify(token));
       if (token.token) {
         ipcRenderer.send("finished-login");
       }
