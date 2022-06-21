@@ -160,9 +160,14 @@ function Students({
   const handleDeleteButton = (id) => {
     const handleStudentDelete = async () => {
       try {
-        const response = await fetch(`${apiUrl}/students/${Number(id)}`, {
-          method: "DELETE",
-        });
+        const response = await fetch(
+          `${apiUrl}/students/${Number(id)}?token=${localStorage.getItem(
+            "Biotime"
+          )}`,
+          {
+            method: "DELETE",
+          }
+        );
 
         const responseData = await response.json();
       } catch (error) {

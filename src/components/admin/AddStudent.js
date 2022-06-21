@@ -100,7 +100,7 @@ function AddStudent({
       },
     ],
     remaining_amount: "",
-    banned: null,
+    banned: 0,
     note: "",
     photo: null,
   });
@@ -352,14 +352,37 @@ function AddStudent({
   const handleNoteChange = (e) =>
     setDataToSend({ ...dataToSend, note: e.target.value });
 
-  const handlePhotoChange = (e) => {
-    setPhoto(new Blob([e.target.files[0]], { type: "image/jpeg" }));
-    var fr = new FileReader();
-    fr.onload = function (event) {
+  const handleMultipleFilesReading = async (file) => {
+    return new Promise((resolve, reject) => {
+      let fr = new FileReader();
+
+      fr.onload = async function (event) {
+        resolve({
+          image: await (await fetch(event.target.result)).blob(),
+          received: true,
+        });
+      };
+      fr.readAsDataURL(file);
+    });
+  };
+
+  const handlePhotoChange = async (e) => {
+    let fr = new FileReader();
+
+    fr.onload = async function (event) {
+      setPhoto(await (await fetch(event.target.result)).blob());
       document.getElementById("myimage").src = event.target.result;
     };
     fr.readAsDataURL(e.target.files[0]);
   };
+  // const handlePhotoChange = (e) => {
+  //   setPhoto(new Blob([e.target.files[0]], { type: "image/jpeg" }));
+  //   var fr = new FileReader();
+  //   fr.onload = function (event) {
+  //     document.getElementById("myimage").src = event.target.result;
+  //   };
+  //   fr.readAsDataURL(e.target.files[0]);
+  // };
   if (photo != null) {
     var fr = new FileReader();
     fr.onload = function (event) {
@@ -391,7 +414,7 @@ function AddStudent({
       if (photo != null) {
         let imgData = new FormData();
 
-        imgData.append("photo", photo);
+        imgData.append("photo", photo, photo.type.split("/")[1]);
         const responseImg = await fetch(
           `${apiUrl}/photo?student_id=${Number(responseData.id)}`,
           { method: "PATCH", body: imgData }
@@ -481,7 +504,7 @@ function AddStudent({
                     {search ? (
                       <div
                         className="position-absolute ms-5 mt-2 pt-2 border-1 border-black border w-50 overflow-auto bg-white"
-                        style={{ height: "250px" }}
+                        style={{ height: "250px", zIndex: "99" }}
                       >
                         {searched.map((student) => {
                           return (
