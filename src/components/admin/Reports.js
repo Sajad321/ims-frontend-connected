@@ -78,16 +78,32 @@ function Reports({ sideBarShow, states }) {
         if (s.poster) {
           s["poster_v"] = s.poster.name;
         }
-        s["first_installment"] = s.installments[0].amount;
-        s["second_installment"] = s.installments[1].amount;
-        s["third_installment"] = s.installments[2].amount;
-        s["forth_installment"] = s.installments[3].amount;
-        total_installments += s.total_amount;
-        total_first_installment += s.installments[0].amount;
-        total_second_installment += s.installments[1].amount;
-        total_third_installment += s.installments[2].amount;
-        total_forth_installment += s.installments[3].amount;
-        total_remaining += s.remaining_amount;
+        if (s.installments[0]) {
+          let first_installment = s.installments.filter(
+            (install) => install.install_id == 1
+          )[0];
+          let second_installment = s.installments.filter(
+            (install) => install.install_id == 2
+          )[0];
+          let third_installment = s.installments.filter(
+            (install) => install.install_id == 3
+          )[0];
+          let forth_installment = s.installments.filter(
+            (install) => install.install_id == 4
+          )[0];
+          s["first_installment"] = first_installment.amount;
+          s["second_installment"] = second_installment.amount;
+          s["third_installment"] = third_installment.amount;
+          s["forth_installment"] = forth_installment.amount;
+          total_installments += s.total_amount;
+          total_first_installment += first_installment.amount;
+          total_second_installment += second_installment.amount;
+          total_third_installment += third_installment.amount;
+          total_forth_installment += forth_installment.amount;
+          total_remaining += s.remaining_amount;
+        } else {
+          console.log(s.name);
+        }
       });
 
       setData({
@@ -193,11 +209,30 @@ function Reports({ sideBarShow, states }) {
     let total_third_installment = 0;
     let total_forth_installment = 0;
     let total_remaining = 0;
+    let ss = data.students;
+    ss.map((s) => {
+      let first_installment = s.installments.filter(
+        (install) => install.install_id == 1
+      )[0];
+      let second_installment = s.installments.filter(
+        (install) => install.install_id == 2
+      )[0];
+      let third_installment = s.installments.filter(
+        (install) => install.install_id == 3
+      )[0];
+      let forth_installment = s.installments.filter(
+        (install) => install.install_id == 4
+      )[0];
+      s.installments[0] = first_installment;
+      s.installments[1] = second_installment;
+      s.installments[2] = third_installment;
+      s.installments[3] = forth_installment;
+    });
     if (searchState != "0") {
       if (searchType == "1") {
         setSearchedData({
           ...data,
-          students: data.students
+          students: ss
             .filter(
               (student) =>
                 student.state.id == searchState && student.name.match(reg)
@@ -222,7 +257,7 @@ function Reports({ sideBarShow, states }) {
       } else if (searchType == "2") {
         setSearchedData({
           ...data,
-          students: data.students
+          students: ss
             .filter(
               (student) =>
                 ((student.installments[0].date <= search2 &&
@@ -255,7 +290,7 @@ function Reports({ sideBarShow, states }) {
       } else if (searchType == "3") {
         setSearchedData({
           ...data,
-          students: data.students
+          students: ss
             .filter(
               (student) =>
                 ((student.installments[0].invoice <= search2 &&
@@ -290,7 +325,7 @@ function Reports({ sideBarShow, states }) {
       if (searchType == "1") {
         setSearchedData({
           ...data,
-          students: data.students
+          students: ss
             .filter((student) => student.name.match(reg))
             .map((s) => {
               total_installments += s.total_amount;
@@ -312,7 +347,7 @@ function Reports({ sideBarShow, states }) {
       } else if (searchType == "2") {
         setSearchedData({
           ...data,
-          students: data.students
+          students: ss
             .filter(
               (student) =>
                 (student.installments[0].date <= search2 &&
@@ -344,7 +379,7 @@ function Reports({ sideBarShow, states }) {
       } else if (searchType == "3") {
         setSearchedData({
           ...data,
-          students: data.students
+          students: ss
             .filter(
               (student) =>
                 (student.installments[0].invoice <= search2 &&
@@ -472,49 +507,57 @@ function Reports({ sideBarShow, states }) {
       render_data = searchedData.students
         .slice(0, searchedData.page * 100)
         .map((student, index) => {
-          return (
-            <tr key={student.id} className="font-weight-bold">
-              <td className="">{index + 1}</td>
-              <td className="">{student.name}</td>
-              <td className="">{student.school}</td>
-              <td className="">{student.governorate_v}</td>
-              <td className="">{student.institute_v}</td>
-              <td className="">{student.poster_v}</td>
-              <td className="">{student.code_1}</td>
-              <td className="">{student.code_2}</td>
-              <td className="">{student.total_amount}</td>
-              <td className="">{student.first_installment}</td>
-              <td className="">{student.second_installment}</td>
-              <td className="">{student.third_installment}</td>
-              <td className="">{student.forth_installment}</td>
-              <td className="">{student.remaining_amount}</td>
-              <td className="">{student.note}</td>
-            </tr>
-          );
+          if (student.installments[0]) {
+            return (
+              <tr key={student.id} className="font-weight-bold">
+                <td className="">{index + 1}</td>
+                <td className="">{student.name}</td>
+                <td className="">{student.school}</td>
+                <td className="">{student.governorate_v}</td>
+                <td className="">{student.institute_v}</td>
+                <td className="">{student.poster_v}</td>
+                <td className="">{student.code_1}</td>
+                <td className="">{student.code_2}</td>
+                <td className="">{student.total_amount}</td>
+                <td className="">{student.first_installment}</td>
+                <td className="">{student.second_installment}</td>
+                <td className="">{student.third_installment}</td>
+                <td className="">{student.forth_installment}</td>
+                <td className="">{student.remaining_amount}</td>
+                <td className="">{student.note}</td>
+              </tr>
+            );
+          } else {
+            return <></>;
+          }
         });
     } else {
       render_data = data.students
         .slice(0, data.page * 100)
         .map((student, index) => {
-          return (
-            <tr key={student.id} className="font-weight-bold">
-              <td className="">{index + 1}</td>
-              <td className="">{student.name}</td>
-              <td className="">{student.school}</td>
-              <td className="">{student.governorate_v}</td>
-              <td className="">{student.institute_v}</td>
-              <td className="">{student.poster_v}</td>
-              <td className="">{student.code_1}</td>
-              <td className="">{student.code_2}</td>
-              <td className="">{student.total_amount}</td>
-              <td className="">{student.first_installment}</td>
-              <td className="">{student.second_installment}</td>
-              <td className="">{student.third_installment}</td>
-              <td className="">{student.forth_installment}</td>
-              <td className="">{student.remaining_amount}</td>
-              <td className="">{student.note}</td>
-            </tr>
-          );
+          if (student.installments[0]) {
+            return (
+              <tr key={student.id} className="font-weight-bold">
+                <td className="">{index + 1}</td>
+                <td className="">{student.name}</td>
+                <td className="">{student.school}</td>
+                <td className="">{student.governorate_v}</td>
+                <td className="">{student.institute_v}</td>
+                <td className="">{student.poster_v}</td>
+                <td className="">{student.code_1}</td>
+                <td className="">{student.code_2}</td>
+                <td className="">{student.total_amount}</td>
+                <td className="">{student.first_installment}</td>
+                <td className="">{student.second_installment}</td>
+                <td className="">{student.third_installment}</td>
+                <td className="">{student.forth_installment}</td>
+                <td className="">{student.remaining_amount}</td>
+                <td className="">{student.note}</td>
+              </tr>
+            );
+          } else {
+            return <></>;
+          }
         });
     }
     return (

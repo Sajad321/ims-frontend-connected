@@ -60,6 +60,7 @@
     "electron-dl": "^3.2.1",
     "electron-log": "^4.4.3",
     "electron-updater": "^4.6.1",
+    "mv": "^2.1.1",
     "print-js": "^1.6.0",
     "react": "^17.0.2",
     "react-bootstrap": "^2.0.1",

@@ -70,14 +70,30 @@ function Students({
           s["poster_v"] = s.poster.name;
         }
         s["state_id"] = s.state.id;
-        s["first_installment"] = s.installments[0].amount;
-        s["first_installment_paid"] = s.installments[0].received;
-        s["second_installment"] = s.installments[1].amount;
-        s["second_installment_paid"] = s.installments[1].received;
-        s["third_installment"] = s.installments[2].amount;
-        s["third_installment_paid"] = s.installments[2].received;
-        s["forth_installment"] = s.installments[3].amount;
-        s["forth_installment_paid"] = s.installments[3].received;
+        if (s.installments[0]) {
+          let first_installment = s.installments.filter(
+            (install) => install.install_id == 1
+          )[0];
+          let second_installment = s.installments.filter(
+            (install) => install.install_id == 2
+          )[0];
+          let third_installment = s.installments.filter(
+            (install) => install.install_id == 3
+          )[0];
+          let forth_installment = s.installments.filter(
+            (install) => install.install_id == 4
+          )[0];
+          s["first_installment"] = first_installment.amount;
+          s["first_installment_paid"] = first_installment.received;
+          s["second_installment"] = second_installment.amount;
+          s["second_installment_paid"] = second_installment.received;
+          s["third_installment"] = third_installment.amount;
+          s["third_installment_paid"] = third_installment.received;
+          s["forth_installment"] = forth_installment.amount;
+          s["forth_installment_paid"] = forth_installment.received;
+        } else {
+          console.log(s.name);
+        }
       });
 
       if (search != "") {
@@ -199,101 +215,109 @@ function Students({
     let render_data = [];
     if (search != "") {
       render_data = searchedData.students.map((student, index) => {
-        return (
-          <tr
-            key={student.id}
-            className="font-weight-bold"
-            onClick={() => handleEditButton(student)}
-          >
-            <td className="">{index + 1}</td>
-            <td className="">{student.name}</td>
-            <td className="">{student.school}</td>
-            <td className="">{student.governorate_v}</td>
-            <td className="">{student.institute_v}</td>
-            <td className="">{student.branch_v}</td>
-            <td className="">{student.first_phone}</td>
-            <td className="">{student.second_phone}</td>
-            <td className="">{student.telegram_username}</td>
-            <td className="">{student.poster_v}</td>
-            <td className="">{student.code_1}</td>
-            <td className="">{student.code_2}</td>
-            <td className="">{student.total_amount}</td>
-            <td className="">{student.first_installment}</td>
-            <td className="">{student.first_installment_paid}</td>
-            <td className="">{student.second_installment}</td>
-            <td className="">{student.second_installment_paid}</td>
-            <td className="">{student.third_installment}</td>
-            <td className="">{student.third_installment_paid}</td>
-            <td className="">{student.forth_installment}</td>
-            <td className="">{student.forth_installment_paid}</td>
-            <td className="">{student.remaining_amount}</td>
-            <td className="">{student.note}</td>
-            <td className="">
-              <button
-                className="btn btn-danger"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setConfirmModal({
-                    ...confirmModal,
-                    show: true,
-                    id: student.id,
-                  });
-                }}
-              >
-                حذف
-              </button>
-            </td>
-          </tr>
-        );
+        if (student.installments[0]) {
+          return (
+            <tr
+              key={student.id}
+              className="font-weight-bold"
+              onClick={() => handleEditButton(student)}
+            >
+              <td className="">{index + 1}</td>
+              <td className="">{student.name}</td>
+              <td className="">{student.school}</td>
+              <td className="">{student.governorate_v}</td>
+              <td className="">{student.institute_v}</td>
+              <td className="">{student.branch_v}</td>
+              <td className="">{student.first_phone}</td>
+              <td className="">{student.second_phone}</td>
+              <td className="">{student.telegram_username}</td>
+              <td className="">{student.poster_v}</td>
+              <td className="">{student.code_1}</td>
+              <td className="">{student.code_2}</td>
+              <td className="">{student.total_amount}</td>
+              <td className="">{student.first_installment}</td>
+              <td className="">{student.first_installment_paid}</td>
+              <td className="">{student.second_installment}</td>
+              <td className="">{student.second_installment_paid}</td>
+              <td className="">{student.third_installment}</td>
+              <td className="">{student.third_installment_paid}</td>
+              <td className="">{student.forth_installment}</td>
+              <td className="">{student.forth_installment_paid}</td>
+              <td className="">{student.remaining_amount}</td>
+              <td className="">{student.note}</td>
+              <td className="">
+                <button
+                  className="btn btn-danger"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setConfirmModal({
+                      ...confirmModal,
+                      show: true,
+                      id: student.id,
+                    });
+                  }}
+                >
+                  حذف
+                </button>
+              </td>
+            </tr>
+          );
+        } else {
+          return <></>;
+        }
       });
     } else {
       render_data = data.students.map((student, index) => {
-        return (
-          <tr
-            key={student.id}
-            className="font-weight-bold"
-            onClick={() => handleEditButton(student)}
-          >
-            <td className="">{index + 1}</td>
-            <td className="">{student.name}</td>
-            <td className="">{student.school}</td>
-            <td className="">{student.governorate_v}</td>
-            <td className="">{student.institute_v}</td>
-            <td className="">{student.branch_v}</td>
-            <td className="">{student.first_phone}</td>
-            <td className="">{student.second_phone}</td>
-            <td className="">{student.telegram_username}</td>
-            <td className="">{student.poster_v}</td>
-            <td className="">{student.code_1}</td>
-            <td className="">{student.code_2}</td>
-            <td className="">{student.total_amount}</td>
-            <td className="">{student.first_installment}</td>
-            <td className="">{student.first_installment_paid}</td>
-            <td className="">{student.second_installment}</td>
-            <td className="">{student.second_installment_paid}</td>
-            <td className="">{student.third_installment}</td>
-            <td className="">{student.third_installment_paid}</td>
-            <td className="">{student.forth_installment}</td>
-            <td className="">{student.forth_installment_paid}</td>
-            <td className="">{student.remaining_amount}</td>
-            <td className="">{student.note}</td>
-            <td className="">
-              <button
-                className="btn btn-danger"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setConfirmModal({
-                    ...confirmModal,
-                    show: true,
-                    id: student.id,
-                  });
-                }}
-              >
-                حذف
-              </button>
-            </td>
-          </tr>
-        );
+        if (student.installments[0]) {
+          return (
+            <tr
+              key={student.id}
+              className="font-weight-bold"
+              onClick={() => handleEditButton(student)}
+            >
+              <td className="">{index + 1}</td>
+              <td className="">{student.name}</td>
+              <td className="">{student.school}</td>
+              <td className="">{student.governorate_v}</td>
+              <td className="">{student.institute_v}</td>
+              <td className="">{student.branch_v}</td>
+              <td className="">{student.first_phone}</td>
+              <td className="">{student.second_phone}</td>
+              <td className="">{student.telegram_username}</td>
+              <td className="">{student.poster_v}</td>
+              <td className="">{student.code_1}</td>
+              <td className="">{student.code_2}</td>
+              <td className="">{student.total_amount}</td>
+              <td className="">{student.first_installment}</td>
+              <td className="">{student.first_installment_paid}</td>
+              <td className="">{student.second_installment}</td>
+              <td className="">{student.second_installment_paid}</td>
+              <td className="">{student.third_installment}</td>
+              <td className="">{student.third_installment_paid}</td>
+              <td className="">{student.forth_installment}</td>
+              <td className="">{student.forth_installment_paid}</td>
+              <td className="">{student.remaining_amount}</td>
+              <td className="">{student.note}</td>
+              <td className="">
+                <button
+                  className="btn btn-danger"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setConfirmModal({
+                      ...confirmModal,
+                      show: true,
+                      id: student.id,
+                    });
+                  }}
+                >
+                  حذف
+                </button>
+              </td>
+            </tr>
+          );
+        } else {
+          return <></>;
+        }
       });
     }
     return (

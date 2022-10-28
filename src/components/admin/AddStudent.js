@@ -181,7 +181,50 @@ function AddStudent({
     getPosters();
     setSearched(students.slice(0, 100));
     if (Object.keys(dataToChange).length != 0) {
-      setDataToSend(dataToChange);
+      let first_installment = dataToChange.installments.filter(
+        (install) => install.install_id == 1
+      )[0];
+      let second_installment = dataToChange.installments.filter(
+        (install) => install.install_id == 2
+      )[0];
+      let third_installment = dataToChange.installments.filter(
+        (install) => install.install_id == 3
+      )[0];
+      let forth_installment = dataToChange.installments.filter(
+        (install) => install.install_id == 4
+      )[0];
+      setDataToSend({
+        id: dataToChange.id,
+        name: dataToChange.name,
+        school: dataToChange.school,
+        state_id: dataToChange.state_id,
+        governorate_id: dataToChange.governorate_id,
+        branch_id: dataToChange.branch_id,
+        institute_id: dataToChange.institute_id,
+        poster_id: dataToChange.poster_id,
+        code_1: dataToChange.code_1,
+        code_2: dataToChange.code_2,
+        telegram_username: dataToChange.telegram_username,
+        first_phone: dataToChange.first_phone,
+        second_phone: dataToChange.second_phone,
+        total_amount: dataToChange.total_amount,
+        installments: [
+          {
+            ...first_installment,
+          },
+          {
+            ...second_installment,
+          },
+          {
+            ...third_installment,
+          },
+          {
+            ...forth_installment,
+          },
+        ],
+        remaining_amount: dataToChange.remaining_amount,
+        note: dataToChange.note,
+      });
       const getPhoto = async () => {
         try {
           const response = await fetch(

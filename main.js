@@ -8,6 +8,11 @@ const { get } = require("axios");
 const appEnv = require("./env.json");
 const apiUrl = appEnv.API_URL;
 
+const fs = require("fs");
+const mv = require("mv");
+
+let LOCALAPPDATA = process.env.LOCALAPPDATA;
+
 let backend = path.join(process.cwd(), "resources/py_main.exe");
 var execfile = require("child_process").execFile;
 execfile(
@@ -82,6 +87,31 @@ function createWindow() {
   // and load the index.html of the app.
   let indexPath, studentInfoPath, loginPath;
 
+  fs.access(LOCALAPPDATA + "\\ims\\db.sqlite3", fs.F_OK, (err) => {
+    if (err) {
+      fs.access("resources/db.sqlite3", fs.F_OK, (err) => {
+        if (err) {
+          console.error(err.message);
+          return;
+        }
+        var oldPath = "resources/db.sqlite3";
+        var newPath = LOCALAPPDATA + "\\ims\\db.sqlite3";
+
+        if (!fs.existsSync(LOCALAPPDATA + "\\ims")) {
+          fs.mkdirSync(LOCALAPPDATA + "\\ims");
+        }
+
+        mv(oldPath, newPath, function (err) {
+          // done. it tried fs.rename first, and then falls back to
+          // piping the source file to the dest file and then unlinking
+          // the source file.
+
+          if (err) return console.error(err);
+          console.log("Moved success!");
+        });
+      });
+    }
+  });
   if (dev && process.argv.indexOf("--noDevServer") === -1) {
     indexPath = url.format({
       protocol: "http:",
